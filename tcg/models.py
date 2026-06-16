@@ -219,8 +219,13 @@ def _titlecase(s: str) -> str:
     for w in s.split():
         if w.upper() in keep:
             out.append(w)
-        else:
-            out.append(re.sub(r"'([A-Za-z])", lambda m: "'" + m.group(1).lower(), w.title()))
+            continue
+        w = w.title()
+        # str.title() over-capitalizes after apostrophes ("Surge'S") and
+        # ordinals ("1St"); card text wants "Surge's" and "1st".
+        w = re.sub(r"'([A-Za-z])", lambda m: "'" + m.group(1).lower(), w)
+        w = re.sub(r"(\d)(St|Nd|Rd|Th)\b", lambda m: m.group(1) + m.group(2).lower(), w)
+        out.append(w)
     return " ".join(out)
 
 

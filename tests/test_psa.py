@@ -195,3 +195,12 @@ def test_titlecase_keeps_possessive_lowercase():
     t = c.listing_title()
     assert "Surge's" in t
     assert "Surge'S" not in t
+
+
+def test_titlecase_fixes_ordinal_edition():
+    # "1ST EDITION" must render "1st Edition", not "1St Edition".
+    c = _cert(subject="DARK DUGTRIO-HOLO", brand="POKEMON ROCKET",
+              card_number="6", variety="1ST EDITION", grade="VG-EX 4")
+    t = c.listing_title()
+    assert "1st Edition" in t
+    assert "1St" not in t
