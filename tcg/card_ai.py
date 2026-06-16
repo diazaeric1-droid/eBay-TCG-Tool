@@ -6,7 +6,7 @@ Engine selection
    an Anthropic account.
 2. **Ollama** — used when ``OLLAMA_BASE_URL`` is set (e.g.
    ``http://localhost:11434``).  Completely free; needs a local Ollama install
-   with a vision-capable model pulled (``ollama pull llava``).
+   with a vision-capable model pulled (``ollama pull qwen2.5vl:7b``).
 
 If neither is configured, ``identify_card`` raises ``AIUnavailable`` and the
 UI falls back to manual entry (130point comps are still real).
@@ -222,7 +222,7 @@ def _identify_ollama(
 ) -> Tuple[CardIdentity, GeneratedListing]:
     b64, _ = to_jpeg_b64(image, max_dim=settings.ai_image_max_dim)
     base = (getattr(settings, "ollama_base_url", None) or "").rstrip("/")
-    model = getattr(settings, "ollama_model", "llava")
+    model = getattr(settings, "ollama_model", "qwen2.5vl:7b")
     # Vision models on CPU can be slow; use a generous timeout.
     timeout = max(120, settings.http_timeout * 6)
 
@@ -272,7 +272,8 @@ def _identify_ollama(
     if not data:
         raise AIError(
             "Ollama did not return a parseable JSON card report. "
-            "Try a better vision model such as llava:13b or llava-phi3."
+            "Try a stronger OCR vision model such as qwen2.5vl:7b or "
+            "openbmb/minicpm-v2.6."
         )
     return _split(data)
 

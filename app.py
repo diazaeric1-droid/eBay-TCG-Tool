@@ -31,7 +31,7 @@ storage.init_db(SETTINGS.db_path)
 # Defensive reads for Ollama attrs — guards against a stale tcg/config.pyc on
 # Streamlit Cloud where app.py may be newer than the cached module bytecode.
 _OLLAMA_ENABLED: bool = getattr(SETTINGS, "ollama_enabled", False)
-_OLLAMA_MODEL: str = getattr(SETTINGS, "ollama_model", "llava")
+_OLLAMA_MODEL: str = getattr(SETTINGS, "ollama_model", "qwen2.5vl:7b")
 
 
 # --------------------------------------------------------------------------- #
@@ -443,7 +443,7 @@ sales — then lets you **save every analysis to a local history**.
 - 🟩 **Sold comps** come live from **130point.com**, which aggregates completed
   eBay sales. This needs **no API key** and is always on.
 - 🟩 **AI identification** — two options, both optional:
-  - **Ollama** (free, runs locally, no account needed): `ollama pull llava`
+  - **Ollama** (free, runs locally, no account needed): `ollama pull qwen2.5vl:7b`
   - **Claude** (cloud, best quality): set `ANTHROPIC_API_KEY`
 - 🟩 **Active comps** use eBay's **official Browse API** when credentials are set.
 - 🟥 Anything labelled **SIMULATED / DEMO** is synthetic and only shown as an
@@ -463,7 +463,7 @@ sales — then lets you **save every analysis to a local history**.
         f"""
 | Capability | Status | How to enable |
 |---|---|---|
-| AI via **Ollama** (free, local) | {_ollama_status} | Install [Ollama](https://ollama.com), run `ollama pull llava`, set `OLLAMA_BASE_URL=http://localhost:11434` |
+| AI via **Ollama** (free, local) | {_ollama_status} | Install [Ollama](https://ollama.com), run `ollama pull qwen2.5vl:7b`, set `OLLAMA_BASE_URL=http://localhost:11434` |
 | AI via **Claude** (cloud) | {_claude_status} | Set `ANTHROPIC_API_KEY` (env or `.streamlit/secrets.toml`) |
 | eBay active comps | {'🟢 enabled' if SETTINGS.ebay_enabled else '⚪️ off'} | Set `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET` |
 | Sold comps (130point) | 🟢 always on | — |

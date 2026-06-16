@@ -53,7 +53,7 @@ class Settings:
 
     # --- AI (Ollama local vision — no key required) ---
     ollama_base_url: Optional[str] = None
-    ollama_model: str = "llava"
+    ollama_model: str = "qwen2.5vl:7b"
 
     # --- eBay Browse API (optional, for ACTIVE comps) ---
     ebay_client_id: Optional[str] = None
@@ -102,7 +102,7 @@ def load_settings() -> Settings:
         anthropic_api_key=_get("ANTHROPIC_API_KEY"),
         anthropic_model=_get("ANTHROPIC_MODEL", "claude-opus-4-8") or "claude-opus-4-8",
         ollama_base_url=_get("OLLAMA_BASE_URL"),
-        ollama_model=_get("OLLAMA_MODEL", "llava") or "llava",
+        ollama_model=_get("OLLAMA_MODEL", "qwen2.5vl:7b") or "qwen2.5vl:7b",
         ebay_client_id=_get("EBAY_CLIENT_ID"),
         ebay_client_secret=_get("EBAY_CLIENT_SECRET"),
         ebay_env=(_get("EBAY_ENV", "production") or "production").lower(),
