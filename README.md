@@ -122,7 +122,7 @@ tests/            pytest suite (parser, pricing, storage, images, AI-with-mock)
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                 # 48 tests: parser (real fixture), pricing, storage, images, AI, PSA
+pytest                 # 52 tests: parser (real fixture), pricing, storage, images, AI, PSA
 pip-audit              # scan dependencies for known CVEs
 ```
 
