@@ -118,7 +118,9 @@ def comps_table(comps: list[dict]) -> pd.DataFrame:
 
 def reset_card_state() -> None:
     for key in ("pil", "identity", "listing", "query", "report",
-                "report_recency", "saved_id", "upload_key"):
+                "report_recency", "saved_id", "upload_key", "auto_done_for",
+                "ai_error", "reidentify_pending", "refresh_comps_pending",
+                "f_title", "f_desc", "f_cond"):
         st.session_state.pop(key, None)
 
 
@@ -146,6 +148,14 @@ tab_analyze, tab_history, tab_about = st.tabs(
 # ANALYZE
 # =========================================================================== #
 with tab_analyze:
+    # Friendly label for whichever AI engine is active this session.
+    if SETTINGS.anthropic_api_key:
+        _engine_label = f"Claude ({SETTINGS.anthropic_model})"
+    elif _OLLAMA_ENABLED:
+        _engine_label = f"Ollama ({_OLLAMA_MODEL})"
+    else:
+        _engine_label = None
+
     left, right = st.columns([1, 1.25], gap="large")
 
     with left:
@@ -155,6 +165,26 @@ with tab_analyze:
             type=["jpg", "jpeg", "png", "webp", "heic", "heif"],
         )
 
+        auto_analyze = st.checkbox(
+            "⚡ Auto-analyze on upload",
+            value=True,
+            key="auto_analyze",
+            disabled=not SETTINGS.ai_enabled,
+            help="As soon as you upload, the card is identified, a listing is "
+                 "drafted, and live comps + a price are pulled — no extra clicks.",
+        )
+
+        recency_label = st.selectbox(
+            "Comp window",
+            ["All time", "Last 30 days", "Last 90 days", "Last 180 days", "Last 365 days"],
+            index=2, key="recency_label",
+        )
+        recency = {
+            "All time": None, "Last 30 days": 30, "Last 90 days": 90,
+            "Last 180 days": 180, "Last 365 days": 365,
+        }[recency_label]
+
+        # ---- new upload: load the image, arm the auto pipeline ----
         if uploaded is not None:
             key = (uploaded.name, uploaded.size)
             if st.session_state.get("upload_key") != key:
@@ -171,55 +201,50 @@ with tab_analyze:
                     except ImageError as exc:
                         st.error(f"Could not read image: {exc}")
 
-        if st.session_state.get("pil") is not None:
-            st.image(st.session_state.pil, caption="Uploaded card", use_container_width=True)
+        # ---- pipeline (runs BEFORE the query/title widgets so we can safely
+        #      write their session_state values without Streamlit complaining) ----
+        _run_identify = False
+        _run_comps = False
+        _have_img = st.session_state.get("pil") is not None
 
-            st.subheader("2 · Identify")
-            if SETTINGS.ai_enabled:
-                _engine_label = (
-                    f"Claude ({SETTINGS.anthropic_model})" if SETTINGS.anthropic_api_key
-                    else f"Ollama ({_OLLAMA_MODEL})"
-                )
-                if st.button("🤖 Identify with AI", type="primary", use_container_width=True):
-                    with st.spinner(f"Asking {_engine_label} to read the card…"):
-                        try:
-                            identity, listing = identify_card(st.session_state.pil, SETTINGS)
-                            st.session_state.identity = identity
-                            st.session_state.listing = listing
-                            st.session_state.query = listing.search_query
-                            st.session_state.pop("report", None)
-                            st.session_state.pop("saved_id", None)
-                        except AIUnavailable:
-                            st.warning("AI is not configured. Enter details manually below.")
-                        except AIError as exc:
-                            st.error(f"AI identification failed: {exc}")
-            else:
-                st.info(
-                    "AI identification is off. Type the card below to pull real comps, "
-                    "or enable AI in **Settings & About**."
-                )
+        if _have_img and SETTINGS.ai_enabled:
+            if st.session_state.pop("reidentify_pending", False):
+                _run_identify = True
+            elif (auto_analyze
+                  and st.session_state.get("auto_done_for") != st.session_state.get("upload_key")):
+                _run_identify = True
+                # Mark immediately so a later rerun never re-bills the same image.
+                st.session_state.auto_done_for = st.session_state.get("upload_key")
 
-            st.text_input(
-                "Search query for comps",
-                key="query",
-                placeholder="e.g. 2018 Topps Chrome Shohei Ohtani Rookie",
-                help="What we search on 130point / eBay. AI fills this in automatically.",
-            )
+        if _run_identify:
+            st.session_state.pop("ai_error", None)
+            with st.spinner(f"🤖 {_engine_label} is reading the card…"):
+                try:
+                    identity, listing = identify_card(st.session_state.pil, SETTINGS)
+                    st.session_state.identity = identity
+                    st.session_state.listing = listing
+                    st.session_state.query = listing.search_query or ""
+                    st.session_state.f_title = listing.ebay_title or ""
+                    st.session_state.f_desc = listing.description or ""
+                    st.session_state.f_cond = listing.suggested_condition or "Raw"
+                    st.session_state.pop("report", None)
+                    st.session_state.pop("saved_id", None)
+                    if (st.session_state.query or "").strip():
+                        _run_comps = True            # chain straight into pricing
+                except AIUnavailable:
+                    st.session_state.ai_error = (
+                        "AI is not configured — type the card details below to pull comps."
+                    )
+                except AIError as exc:
+                    st.session_state.ai_error = str(exc)
 
-            recency_label = st.selectbox(
-                "Comp window",
-                ["All time", "Last 30 days", "Last 90 days", "Last 180 days", "Last 365 days"],
-                index=2,
-            )
-            recency = {
-                "All time": None, "Last 30 days": 30, "Last 90 days": 90,
-                "Last 180 days": 180, "Last 365 days": 365,
-            }[recency_label]
+        if st.session_state.pop("refresh_comps_pending", False):
+            _run_comps = True
 
-            if st.button("📈 Get / refresh comps", use_container_width=True,
-                         disabled=not (st.session_state.get("query") or "").strip()):
-                q = st.session_state.query.strip()
-                with st.spinner(f"Searching 130point sold comps for “{q}”…"):
+        if _run_comps:
+            q = (st.session_state.get("query") or "").strip()
+            if q:
+                with st.spinner(f"📈 Pulling 130point sold comps for “{q}”…"):
                     try:
                         st.session_state.report = fetch_report(q, recency)
                         st.session_state.report_recency = recency
@@ -227,25 +252,70 @@ with tab_analyze:
                     except Exception as exc:  # noqa: BLE001
                         st.error(f"Comp lookup failed: {exc}")
 
+        # ---- image preview ----
+        if _have_img:
+            st.image(st.session_state.pil, caption="Uploaded card", use_container_width=True)
+
+        if st.session_state.get("ai_error"):
+            st.warning(st.session_state["ai_error"])
+
+        # Backend caveat: Ollama must be reachable from wherever the app runs.
+        if SETTINGS.ai_enabled and not SETTINGS.anthropic_api_key:
+            st.caption(
+                "ℹ️ Ollama runs **locally** — on a hosted server (e.g. Streamlit "
+                "Cloud) it must be reachable from there, or identification will fail."
+            )
+        elif not SETTINGS.ai_enabled:
+            st.info(
+                "AI identification is off. Type the card below to pull real comps, "
+                "or enable it in **Settings & About**."
+            )
+
+        # ---- query + manual controls ----
+        st.text_input(
+            "Search query for comps",
+            key="query",
+            placeholder="e.g. 2018 Topps Chrome Shohei Ohtani Rookie",
+            help="What we search on 130point / eBay. AI fills this in automatically.",
+        )
+
+        b1, b2 = st.columns(2)
+        with b1:
+            if st.button("📈 Refresh comps", use_container_width=True,
+                         disabled=not (st.session_state.get("query") or "").strip()):
+                st.session_state.refresh_comps_pending = True
+                st.rerun()
+        with b2:
+            if st.button("🔁 Re-identify", use_container_width=True,
+                         disabled=not (SETTINGS.ai_enabled and _have_img)):
+                st.session_state.reidentify_pending = True
+                st.rerun()
+
     with right:
-        st.subheader("3 · Listing & valuation")
+        st.subheader("2 · Review, price & copy")
         report = st.session_state.get("report")
         listing: GeneratedListing | None = st.session_state.get("listing")
         identity: CardIdentity | None = st.session_state.get("identity")
 
         if listing is None and report is None:
-            st.info("Upload a card, identify it (or type a query), then fetch comps.")
+            st.info(
+                "⚡ **Upload a card** — it's identified, priced, and turned into an "
+                "eBay listing automatically. You can edit anything here before saving, "
+                "and copy each field with one click."
+            )
         else:
-            # ---- editable listing fields ----
-            default_title = (listing.ebay_title if listing else "") or ""
-            title = st.text_input("eBay title (≤ 80 chars)", value=default_title, max_chars=80)
+            # ---- editable listing fields (values driven by session_state, which
+            #      the pipeline sets on each new identification) ----
+            st.session_state.setdefault("f_title", (listing.ebay_title if listing else "") or "")
+            st.session_state.setdefault("f_desc", (listing.description if listing else "") or "")
+            st.session_state.setdefault(
+                "f_cond", (listing.suggested_condition if listing else "Raw") or "Raw")
+
+            title = st.text_input("eBay title (≤ 80 chars)", max_chars=80, key="f_title")
             st.caption(f"{len(title)}/80 characters")
 
-            default_desc = (listing.description if listing else "") or ""
-            description = st.text_area("Description", value=default_desc, height=180)
-
-            cond_default = (listing.suggested_condition if listing else "Raw") or "Raw"
-            condition = st.text_input("Condition", value=cond_default)
+            description = st.text_area("Description", height=180, key="f_desc")
+            condition = st.text_input("Condition", key="f_cond")
 
             if identity is not None and isinstance(identity.confidence, (int, float)) \
                     and identity.confidence:
@@ -315,6 +385,35 @@ with tab_analyze:
                         use_container_width=True, hide_index=True,
                         column_config={"Link": st.column_config.LinkColumn("Link", display_text="view")},
                     )
+
+            # ---- copy-paste ready (st.code gives a one-click copy button) ----
+            st.divider()
+            st.markdown("#### 📋 Copy-paste for eBay")
+            st.caption("Hover each box and click the copy icon in its top-right corner.")
+
+            st.markdown("**Title**")
+            st.code(title or "—", language=None)
+
+            st.markdown("**Description**")
+            st.code(description or "—", language=None)
+
+            if report is not None and report["valuation"].get("estimate"):
+                v = report["valuation"]
+                cur = v.get("currency", "USD")
+                pc1, pc2 = st.columns([1, 2])
+                with pc1:
+                    st.markdown("**Suggested price**")
+                    st.code(f"{v['estimate']:,.2f}", language=None)
+                with pc2:
+                    st.markdown("**Condition**")
+                    st.code(condition or "Raw", language=None)
+                st.caption(
+                    f"Price = median of {v['n']} sold comps · "
+                    f"range {cur} {v['low']:,.2f}–{v['high']:,.2f} ({v.get('range_kind', 'range')})"
+                )
+            else:
+                st.markdown("**Condition**")
+                st.code(condition or "Raw", language=None)
 
             # ---- actions ----
             st.divider()
