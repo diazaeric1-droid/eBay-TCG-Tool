@@ -1,0 +1,480 @@
+
+		<!-- <script type="text/javascript">
+			jQuery(document).ready(function () {
+				var tabIdBase = '0'
+
+				jQuery('.salesTable').on( 'draw.dt', function () {
+					changeCurr(tabIdBase);
+				});
+			});
+
+		</script> -->
+
+		<style type="text/css">
+			.h4-results {
+				line-height: 1.8;
+				margin: 0px;
+				font-size: 16px;
+				color: black !important;
+				font-weight: bold
+			}
+
+			#queryDiv {
+				width: 100%;
+				text-align: center;
+				align-items: center;
+				display: flex;
+				justify-content: center;
+				padding: 20px;
+			}
+
+			#queryDivBlock {
+				width: 75%;
+				text-align: center;
+				word-wrap: break-word;
+				background-color: #d35400;
+				border-radius: 10px;
+				border: medium black solid;
+			}
+
+			#queryText {
+				line-height: 1.8;
+				margin: 0px;
+				font-size: 20px;
+				color: white;
+				font-weight: bold
+			}
+
+			.currOption {
+				border-radius: 15px;
+				height: 30px;
+				padding-left: 10px;
+				width: 25%;
+				max-width: 150px;
+			}
+
+			@media screen and (max-width: 600px) {
+
+				.h4-results {
+					line-height: 1.5;
+					margin: 0px;
+					font-size: 14px;
+					color: black !important;
+					font-weight: bold
+				}
+
+				#queryDiv {
+					padding: 10px;
+				}
+
+				#queryDivBlock {
+					width: 90%;
+					border: thin black solid;
+				}
+
+				#queryText {
+					font-size: 14px;
+				}
+
+				.currOption {
+					font-size: 0.8em;
+					border-radius: 10px;
+					height: 20px;
+					padding-left: 10px;
+				}
+
+			}
+
+		</style>
+
+		
+		<div id="queryDiv" >
+			<div id="queryDivBlock">
+				<h2 id="queryText">Search Query: 2021 topps chrome jasson dominguez auto</h2>
+			</div>
+		</div>
+
+		<div style="width: 100%; text-align: center; align-items: center; display: flex; justify-content: center; padding: 0px;">
+			<div style="width: 100%; text-align: center; color: black;">
+				 <h4 id="h4-results-0" class="h4-results"></h4>
+			</div>
+		</div>
+
+		<div id="currencyDiv-0" style="width: 100%; text-align: center; align-items: center; display: flex; justify-content: center; padding: 0px;">
+			<div style="width: 100%; text-align: center; color: black; display: flex; justify-content: center; align-items: center; padding-bottom: 10px;">
+				<h4 class="h4-results">Currency:&nbsp</h4>
+			<select class="currOption" onchange="changeCurr(0)" id="0-curr"><option selected="selected" value="Original" data-curr="1">Original</option><option value="USD" data-curr="1">USD</option><option value="CAD" data-curr="1.36728">CAD</option><option value="AUD" data-curr="1.48884">AUD</option><option value="GBP" data-curr="0.814725">GBP</option><option value="EUR" data-curr="0.93294">EUR</option><option value="PHP" data-curr="54.249837">PHP</option><option value="NZD" data-curr="1.602115">NZD</option><option value="CNY" data-curr="6.878701">CNY</option><option value="SGD" data-curr="1.33773">SGD</option><option value="JPY" data-curr="131.400499">JPY</option>				</select>
+			<span style="display: none" id="0-currData">{&quot;USDAED&quot;:{&quot;start_rate&quot;:3.672801,&quot;end_rate&quot;:3.672801,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDAFN&quot;:{&quot;start_rate&quot;:87.416179,&quot;end_rate&quot;:87.416179,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDALL&quot;:{&quot;start_rate&quot;:106.823318,&quot;end_rate&quot;:106.823318,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDAMD&quot;:{&quot;start_rate&quot;:388.479725,&quot;end_rate&quot;:388.479725,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDANG&quot;:{&quot;start_rate&quot;:1.802245,&quot;end_rate&quot;:1.802245,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDAOA&quot;:{&quot;start_rate&quot;:504.801038,&quot;end_rate&quot;:504.801038,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDARS&quot;:{&quot;start_rate&quot;:204.528598,&quot;end_rate&quot;:204.528598,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDAUD&quot;:{&quot;start_rate&quot;:1.48884,&quot;end_rate&quot;:1.48884,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDAWG&quot;:{&quot;start_rate&quot;:1.8,&quot;end_rate&quot;:1.8,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDAZN&quot;:{&quot;start_rate&quot;:1.700514,&quot;end_rate&quot;:1.700514,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBAM&quot;:{&quot;start_rate&quot;:1.826621,&quot;end_rate&quot;:1.826621,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBBD&quot;:{&quot;start_rate&quot;:2.003568,&quot;end_rate&quot;:2.003568,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBDT&quot;:{&quot;start_rate&quot;:105.284786,&quot;end_rate&quot;:105.284786,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBGN&quot;:{&quot;start_rate&quot;:1.825493,&quot;end_rate&quot;:1.825493,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBHD&quot;:{&quot;start_rate&quot;:0.377057,&quot;end_rate&quot;:0.377057,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBIF&quot;:{&quot;start_rate&quot;:2079.628661,&quot;end_rate&quot;:2079.628661,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBMD&quot;:{&quot;start_rate&quot;:1,&quot;end_rate&quot;:1,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBND&quot;:{&quot;start_rate&quot;:1.339473,&quot;end_rate&quot;:1.339473,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBOB&quot;:{&quot;start_rate&quot;:6.904571,&quot;end_rate&quot;:6.904571,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBRL&quot;:{&quot;start_rate&quot;:5.237103,&quot;end_rate&quot;:5.237103,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBSD&quot;:{&quot;start_rate&quot;:0.999963,&quot;end_rate&quot;:0.999963,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBTC&quot;:{&quot;start_rate&quot;:3.5992005e-5,&quot;end_rate&quot;:3.5992005e-5,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBTN&quot;:{&quot;start_rate&quot;:82.607823,&quot;end_rate&quot;:82.607823,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBWP&quot;:{&quot;start_rate&quot;:13.279849,&quot;end_rate&quot;:13.279849,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBYN&quot;:{&quot;start_rate&quot;:2.524096,&quot;end_rate&quot;:2.524096,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBYR&quot;:{&quot;start_rate&quot;:19600,&quot;end_rate&quot;:19600,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDBZD&quot;:{&quot;start_rate&quot;:2.005006,&quot;end_rate&quot;:2.005006,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCAD&quot;:{&quot;start_rate&quot;:1.36728,&quot;end_rate&quot;:1.36728,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCDF&quot;:{&quot;start_rate&quot;:2052.000037,&quot;end_rate&quot;:2052.000037,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCHF&quot;:{&quot;start_rate&quot;:0.92929,&quot;end_rate&quot;:0.92929,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCLF&quot;:{&quot;start_rate&quot;:0.029938,&quot;end_rate&quot;:0.029938,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCLP&quot;:{&quot;start_rate&quot;:826.079559,&quot;end_rate&quot;:826.079559,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCNY&quot;:{&quot;start_rate&quot;:6.878701,&quot;end_rate&quot;:6.878701,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCOP&quot;:{&quot;start_rate&quot;:4816.98,&quot;end_rate&quot;:4816.98,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCRC&quot;:{&quot;start_rate&quot;:541.691572,&quot;end_rate&quot;:541.691572,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCUC&quot;:{&quot;start_rate&quot;:1,&quot;end_rate&quot;:1,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCUP&quot;:{&quot;start_rate&quot;:26.5,&quot;end_rate&quot;:26.5,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCVE&quot;:{&quot;start_rate&quot;:102.976955,&quot;end_rate&quot;:102.976955,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDCZK&quot;:{&quot;start_rate&quot;:22.386799,&quot;end_rate&quot;:22.386799,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDDJF&quot;:{&quot;start_rate&quot;:177.71969,&quot;end_rate&quot;:177.71969,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDDKK&quot;:{&quot;start_rate&quot;:6.94464,&quot;end_rate&quot;:6.94464,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDDOP&quot;:{&quot;start_rate&quot;:54.888299,&quot;end_rate&quot;:54.888299,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDDZD&quot;:{&quot;start_rate&quot;:135.848981,&quot;end_rate&quot;:135.848981,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDEGP&quot;:{&quot;start_rate&quot;:30.897201,&quot;end_rate&quot;:30.897201,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDERN&quot;:{&quot;start_rate&quot;:15,&quot;end_rate&quot;:15,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDETB&quot;:{&quot;start_rate&quot;:53.84351,&quot;end_rate&quot;:53.84351,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDEUR&quot;:{&quot;start_rate&quot;:0.93294,&quot;end_rate&quot;:0.93294,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDFJD&quot;:{&quot;start_rate&quot;:2.209502,&quot;end_rate&quot;:2.209502,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDFKP&quot;:{&quot;start_rate&quot;:0.821178,&quot;end_rate&quot;:0.821178,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDGBP&quot;:{&quot;start_rate&quot;:0.814725,&quot;end_rate&quot;:0.814725,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDGEL&quot;:{&quot;start_rate&quot;:2.575009,&quot;end_rate&quot;:2.575009,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDGGP&quot;:{&quot;start_rate&quot;:0.821178,&quot;end_rate&quot;:0.821178,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDGHS&quot;:{&quot;start_rate&quot;:12.399836,&quot;end_rate&quot;:12.399836,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDGIP&quot;:{&quot;start_rate&quot;:0.821178,&quot;end_rate&quot;:0.821178,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDGMD&quot;:{&quot;start_rate&quot;:61.5008,&quot;end_rate&quot;:61.5008,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDGNF&quot;:{&quot;start_rate&quot;:8605.384202,&quot;end_rate&quot;:8605.384202,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDGTQ&quot;:{&quot;start_rate&quot;:7.798491,&quot;end_rate&quot;:7.798491,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDGYD&quot;:{&quot;start_rate&quot;:210.994266,&quot;end_rate&quot;:210.994266,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDHKD&quot;:{&quot;start_rate&quot;:7.84265,&quot;end_rate&quot;:7.84265,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDHNL&quot;:{&quot;start_rate&quot;:24.663778,&quot;end_rate&quot;:24.663778,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDHRK&quot;:{&quot;start_rate&quot;:7.018274,&quot;end_rate&quot;:7.018274,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDHTG&quot;:{&quot;start_rate&quot;:154.808824,&quot;end_rate&quot;:154.808824,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDHUF&quot;:{&quot;start_rate&quot;:368.395747,&quot;end_rate&quot;:368.395747,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDIDR&quot;:{&quot;start_rate&quot;:15359.5,&quot;end_rate&quot;:15359.5,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDILS&quot;:{&quot;start_rate&quot;:3.66713,&quot;end_rate&quot;:3.66713,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDIMP&quot;:{&quot;start_rate&quot;:0.821178,&quot;end_rate&quot;:0.821178,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDINR&quot;:{&quot;start_rate&quot;:82.52935,&quot;end_rate&quot;:82.52935,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDIQD&quot;:{&quot;start_rate&quot;:1459.457945,&quot;end_rate&quot;:1459.457945,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDIRR&quot;:{&quot;start_rate&quot;:42250.000102,&quot;end_rate&quot;:42250.000102,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDISK&quot;:{&quot;start_rate&quot;:140.030388,&quot;end_rate&quot;:140.030388,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDJEP&quot;:{&quot;start_rate&quot;:0.821178,&quot;end_rate&quot;:0.821178,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDJMD&quot;:{&quot;start_rate&quot;:151.234683,&quot;end_rate&quot;:151.234683,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDJOD&quot;:{&quot;start_rate&quot;:0.709396,&quot;end_rate&quot;:0.709396,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDJPY&quot;:{&quot;start_rate&quot;:131.400499,&quot;end_rate&quot;:131.400499,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDKES&quot;:{&quot;start_rate&quot;:130.000121,&quot;end_rate&quot;:130.000121,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDKGS&quot;:{&quot;start_rate&quot;:87.419784,&quot;end_rate&quot;:87.419784,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDKHR&quot;:{&quot;start_rate&quot;:4053.34728,&quot;end_rate&quot;:4053.34728,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDKMF&quot;:{&quot;start_rate&quot;:461.740124,&quot;end_rate&quot;:461.740124,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDKPW&quot;:{&quot;start_rate&quot;:900,&quot;end_rate&quot;:900,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDKRW&quot;:{&quot;start_rate&quot;:1305.290326,&quot;end_rate&quot;:1305.290326,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDKWD&quot;:{&quot;start_rate&quot;:0.306519,&quot;end_rate&quot;:0.306519,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDKYD&quot;:{&quot;start_rate&quot;:0.833364,&quot;end_rate&quot;:0.833364,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDKZT&quot;:{&quot;start_rate&quot;:464.672974,&quot;end_rate&quot;:464.672974,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDLAK&quot;:{&quot;start_rate&quot;:16883.650559,&quot;end_rate&quot;:16883.650559,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDLBP&quot;:{&quot;start_rate&quot;:15009.432729,&quot;end_rate&quot;:15009.432729,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDLKR&quot;:{&quot;start_rate&quot;:345.009223,&quot;end_rate&quot;:345.009223,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDLRD&quot;:{&quot;start_rate&quot;:161.050089,&quot;end_rate&quot;:161.050089,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDLSL&quot;:{&quot;start_rate&quot;:18.420059,&quot;end_rate&quot;:18.420059,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDLTL&quot;:{&quot;start_rate&quot;:2.95274,&quot;end_rate&quot;:2.95274,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDLVL&quot;:{&quot;start_rate&quot;:0.60489,&quot;end_rate&quot;:0.60489,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDLYD&quot;:{&quot;start_rate&quot;:4.8229,&quot;end_rate&quot;:4.8229,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMAD&quot;:{&quot;start_rate&quot;:10.357423,&quot;end_rate&quot;:10.357423,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMDL&quot;:{&quot;start_rate&quot;:18.63571,&quot;end_rate&quot;:18.63571,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMGA&quot;:{&quot;start_rate&quot;:4301.697891,&quot;end_rate&quot;:4301.697891,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMKD&quot;:{&quot;start_rate&quot;:57.46167,&quot;end_rate&quot;:57.46167,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMMK&quot;:{&quot;start_rate&quot;:2099.988793,&quot;end_rate&quot;:2099.988793,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMNT&quot;:{&quot;start_rate&quot;:3532.359561,&quot;end_rate&quot;:3532.359561,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMOP&quot;:{&quot;start_rate&quot;:8.077778,&quot;end_rate&quot;:8.077778,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMRO&quot;:{&quot;start_rate&quot;:356.999828,&quot;end_rate&quot;:356.999828,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMUR&quot;:{&quot;start_rate&quot;:46.649996,&quot;end_rate&quot;:46.649996,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMVR&quot;:{&quot;start_rate&quot;:15.410487,&quot;end_rate&quot;:15.410487,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMWK&quot;:{&quot;start_rate&quot;:1026.392962,&quot;end_rate&quot;:1026.392962,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMXN&quot;:{&quot;start_rate&quot;:18.81935,&quot;end_rate&quot;:18.81935,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMYR&quot;:{&quot;start_rate&quot;:4.485981,&quot;end_rate&quot;:4.485981,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDMZN&quot;:{&quot;start_rate&quot;:63.09996,&quot;end_rate&quot;:63.09996,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDNAD&quot;:{&quot;start_rate&quot;:18.41995,&quot;end_rate&quot;:18.41995,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDNGN&quot;:{&quot;start_rate&quot;:460.390131,&quot;end_rate&quot;:460.390131,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDNIO&quot;:{&quot;start_rate&quot;:36.573691,&quot;end_rate&quot;:36.573691,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDNOK&quot;:{&quot;start_rate&quot;:10.644085,&quot;end_rate&quot;:10.644085,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDNPR&quot;:{&quot;start_rate&quot;:132.172143,&quot;end_rate&quot;:132.172143,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDNZD&quot;:{&quot;start_rate&quot;:1.602115,&quot;end_rate&quot;:1.602115,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDOMR&quot;:{&quot;start_rate&quot;:0.384989,&quot;end_rate&quot;:0.384989,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDPAB&quot;:{&quot;start_rate&quot;:0.999981,&quot;end_rate&quot;:0.999981,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDPEN&quot;:{&quot;start_rate&quot;:3.79016,&quot;end_rate&quot;:3.79016,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDPGK&quot;:{&quot;start_rate&quot;:3.523797,&quot;end_rate&quot;:3.523797,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDPHP&quot;:{&quot;start_rate&quot;:54.249837,&quot;end_rate&quot;:54.249837,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDPKR&quot;:{&quot;start_rate&quot;:281.884806,&quot;end_rate&quot;:281.884806,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDPLN&quot;:{&quot;start_rate&quot;:4.387251,&quot;end_rate&quot;:4.387251,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDPYG&quot;:{&quot;start_rate&quot;:7207.299761,&quot;end_rate&quot;:7207.299761,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDQAR&quot;:{&quot;start_rate&quot;:3.641039,&quot;end_rate&quot;:3.641039,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDRON&quot;:{&quot;start_rate&quot;:4.592705,&quot;end_rate&quot;:4.592705,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDRSD&quot;:{&quot;start_rate&quot;:109.453029,&quot;end_rate&quot;:109.453029,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDRUB&quot;:{&quot;start_rate&quot;:77.497463,&quot;end_rate&quot;:77.497463,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDRWF&quot;:{&quot;start_rate&quot;:1092.816049,&quot;end_rate&quot;:1092.816049,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSAR&quot;:{&quot;start_rate&quot;:3.756056,&quot;end_rate&quot;:3.756056,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSBD&quot;:{&quot;start_rate&quot;:8.200165,&quot;end_rate&quot;:8.200165,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSCR&quot;:{&quot;start_rate&quot;:13.902755,&quot;end_rate&quot;:13.902755,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSDG&quot;:{&quot;start_rate&quot;:593.49594,&quot;end_rate&quot;:593.49594,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSEK&quot;:{&quot;start_rate&quot;:10.371425,&quot;end_rate&quot;:10.371425,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSGD&quot;:{&quot;start_rate&quot;:1.33773,&quot;end_rate&quot;:1.33773,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSHP&quot;:{&quot;start_rate&quot;:1.21675,&quot;end_rate&quot;:1.21675,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSLE&quot;:{&quot;start_rate&quot;:20.595084,&quot;end_rate&quot;:20.595084,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSLL&quot;:{&quot;start_rate&quot;:19749.999895,&quot;end_rate&quot;:19749.999895,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSOS&quot;:{&quot;start_rate&quot;:569.499549,&quot;end_rate&quot;:569.499549,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSRD&quot;:{&quot;start_rate&quot;:34.878504,&quot;end_rate&quot;:34.878504,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSTD&quot;:{&quot;start_rate&quot;:20697.981008,&quot;end_rate&quot;:20697.981008,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSVC&quot;:{&quot;start_rate&quot;:8.750146,&quot;end_rate&quot;:8.750146,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSYP&quot;:{&quot;start_rate&quot;:2511.947529,&quot;end_rate&quot;:2511.947529,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDSZL&quot;:{&quot;start_rate&quot;:18.462516,&quot;end_rate&quot;:18.462516,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDTHB&quot;:{&quot;start_rate&quot;:34.044025,&quot;end_rate&quot;:34.044025,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDTJS&quot;:{&quot;start_rate&quot;:10.939835,&quot;end_rate&quot;:10.939835,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDTMT&quot;:{&quot;start_rate&quot;:3.5,&quot;end_rate&quot;:3.5,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDTND&quot;:{&quot;start_rate&quot;:3.129004,&quot;end_rate&quot;:3.129004,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDTOP&quot;:{&quot;start_rate&quot;:2.345601,&quot;end_rate&quot;:2.345601,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDTRY&quot;:{&quot;start_rate&quot;:19.0171,&quot;end_rate&quot;:19.0171,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDTTD&quot;:{&quot;start_rate&quot;:6.785961,&quot;end_rate&quot;:6.785961,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDTWD&quot;:{&quot;start_rate&quot;:30.510805,&quot;end_rate&quot;:30.510805,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDTZS&quot;:{&quot;start_rate&quot;:2332.000282,&quot;end_rate&quot;:2332.000282,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDUAH&quot;:{&quot;start_rate&quot;:36.933465,&quot;end_rate&quot;:36.933465,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDUGX&quot;:{&quot;start_rate&quot;:3761.954573,&quot;end_rate&quot;:3761.954573,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDUSD&quot;:{&quot;start_rate&quot;:1,&quot;end_rate&quot;:1,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDUYU&quot;:{&quot;start_rate&quot;:39.692732,&quot;end_rate&quot;:39.692732,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDUZS&quot;:{&quot;start_rate&quot;:11377.337785,&quot;end_rate&quot;:11377.337785,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDVEF&quot;:{&quot;start_rate&quot;:2407075.129695,&quot;end_rate&quot;:2407075.129695,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDVES&quot;:{&quot;start_rate&quot;:24.095671,&quot;end_rate&quot;:24.095671,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDVND&quot;:{&quot;start_rate&quot;:23585,&quot;end_rate&quot;:23585,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDVUV&quot;:{&quot;start_rate&quot;:118.621947,&quot;end_rate&quot;:118.621947,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDWST&quot;:{&quot;start_rate&quot;:2.724076,&quot;end_rate&quot;:2.724076,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDXAF&quot;:{&quot;start_rate&quot;:612.671847,&quot;end_rate&quot;:612.671847,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDXAG&quot;:{&quot;start_rate&quot;:0.04441,&quot;end_rate&quot;:0.04441,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDXAU&quot;:{&quot;start_rate&quot;:0.000506,&quot;end_rate&quot;:0.000506,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDXCD&quot;:{&quot;start_rate&quot;:2.70255,&quot;end_rate&quot;:2.70255,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDXDR&quot;:{&quot;start_rate&quot;:0.749309,&quot;end_rate&quot;:0.749309,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDXOF&quot;:{&quot;start_rate&quot;:612.668986,&quot;end_rate&quot;:612.668986,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDXPF&quot;:{&quot;start_rate&quot;:112.250111,&quot;end_rate&quot;:112.250111,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDYER&quot;:{&quot;start_rate&quot;:250.29913,&quot;end_rate&quot;:250.29913,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDZAR&quot;:{&quot;start_rate&quot;:18.517445,&quot;end_rate&quot;:18.517445,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDZMK&quot;:{&quot;start_rate&quot;:9001.20435,&quot;end_rate&quot;:9001.20435,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDZMW&quot;:{&quot;start_rate&quot;:20.624054,&quot;end_rate&quot;:20.624054,&quot;change&quot;:0,&quot;change_pct&quot;:0},&quot;USDZWL&quot;:{&quot;start_rate&quot;:321.999592,&quot;end_rate&quot;:321.999592,&quot;change&quot;:0,&quot;change_pct&quot;:0}}</span>			</div>
+		</div>
+		<div style="display: none" id="tabIdData" data-tabid="0"></div>
+		<div id="chart_div_0"></div>
+
+		<style type="text/css">
+			#typeDiv {
+				width: 100%;
+				text-align: center;
+				align-items: center;
+				display: flex;
+				justify-content: center;
+				padding: 20px;
+			}
+
+			#typeDivBlock {
+				width: 100%;
+				text-align: center;
+				word-wrap: break-word;
+				background-color: lightyellow;
+				border-radius: 10px;
+				border: medium black solid;
+			}
+
+			#typeText {
+				line-height: 1.4;
+				margin: 0px;
+				font-size: 15px;
+				color: black;
+				font-weight: bold
+			}
+
+			@media screen and (max-width: 600px) {
+
+				#typeDiv {
+					padding: 10px;
+				}
+
+				#typeDivBlock {
+					width: 90%;
+					border: thin black solid;
+				}
+
+				#typeText {
+					font-size: 12px;
+				}
+
+			}
+
+		</style>
+
+		
+		<style type="text/css">
+			
+			#ebayOuter {
+				background: snow;
+				padding: 5px;
+				border-radius: 10px;
+			}
+
+			#soldDiv {
+				display: flex;
+				flex-wrap: wrap;
+			}
+
+			#pwccOuter {
+				background: black;
+				padding: 5px;
+				border-radius: 10px;
+			}
+
+			#pwccOuterAlt {
+				background: white;
+				padding: 5px;
+				border-radius: 10px;
+			}
+
+			#pwccInner {
+				font-weight: bold;
+				color: white
+			}
+
+			#pwccInnerAlt {
+				font-weight: bold;
+				color: black
+			}
+
+			#goldinOuter {
+				background: white;
+				padding: 5px;
+				border-radius: 10px;
+			}
+
+			#goldinInner {
+				font-weight: bold;
+				color: black
+			}
+
+			#heritageOuter {
+				background: black;
+				padding: 5px;
+				border-radius: 10px;
+			}
+
+			#heritageInner {
+				font-weight: bold;
+				color: white
+			}
+
+			#soldVia {
+				font-weight: bold;
+				color: black;
+			}
+
+			#auctionLabel {
+				line-height: 1.5;
+				font-size: 12px;
+				border-radius: 10px;
+				padding: 5px;
+				border-width: 1px;
+				border: solid;
+				border-color: green;
+				color: green;
+				white-space: pre;
+			}
+
+			.priceSpan {
+				font-weight: bold;
+				color: green
+			}
+
+			#priceSpanOuter {
+
+			}
+
+			#buyersPrem {
+				font-size: 0.75em;
+				font-weight: bold;
+				color: green;
+			}
+
+			#bestOfferOuter{
+				text-decoration: line-through;
+				color: red
+			}
+
+			#dRow {
+				/*border-bottom: 10px solid transparent;*/
+				border-bottom: 7.5px outset;
+			}
+
+			#imgCol {
+				width: 150px;
+				border: none;
+				/*border-bottom: 5px outset; */
+				text-align: center;
+				padding: 0;
+				margin: 0;
+				background-color: transparent;
+				/*border-color: grey;*/
+				/*background-clip: padding-box;*/
+			}
+
+			#dCol {
+				width: auto;
+				border: none;
+				/*border-bottom: 5px outset; */
+				text-align: left;
+				background-color: transparent;
+				/*border-color: grey;*/
+				/*background-clip: padding-box;*/
+			}
+
+			@media screen and (max-width: 600px) {
+
+				#shipString {
+					font-size: 12px;
+					line-height: 0.8;
+				}
+
+				#ebayOuter {
+					padding: 4px;
+				}
+
+				#soldDiv {
+					padding-bottom: 5px;
+				}
+
+				#pwccOuter, #pwccOuter2 {
+					padding-bottom: 1px;
+					padding-right: 5px;
+					padding-left: 5px;
+					padding-top: 1.5px;
+				}
+
+				#pwccInner, #pwccInnerAlt {
+					font-size: 12px;
+				}
+
+				#goldinInner, #heritageInner {
+					font-size: 12px;
+				}
+
+				#goldinOuter, #heritageOuter {
+					padding-bottom: 1px;
+					padding-right: 5px;
+					padding-left: 5px;
+					padding-top: 1.5px;
+				}
+
+				#soldVia {
+					font-size: 12px;
+					line-height: 0.8;
+				}
+
+				#auctionLabel {
+					line-height: 2;
+					font-size: 10px;
+					border-radius: 7.5px;
+					padding: 2px;
+					margin: 0px;
+				}
+
+				#priceSpanOuter {
+					font-size: 12px;
+					line-height: 0.8;
+				}
+
+				#listPrice {
+					font-size: 12px;
+					line-height: 0.8;
+				}
+
+				#bidText {
+					font-size: 12px;
+					line-height: 0.8;
+				}
+
+				#bestOfferOuter{
+					font-size: 12px;
+					line-height: 0.8;
+				}
+
+				#bestOfferText {
+					font-size: 12px;
+					line-height: 0.8;
+				}
+
+				#dateText {
+					font-size: 12px;
+					line-height: 0.8;
+				}
+
+				#titleText {
+					font-size: 12px;
+					line-height: 0.8;
+				}
+
+				#imgCol {
+					width: 100px;
+					padding-right: 5px;
+					margin: 0;
+				}
+
+				#dCol {
+					padding: 0;
+					margin: 0;
+					line-height: 1.2;
+				}
+			}
+
+
+		</style>
+
+		<div id='resultsDiv'>
+
+			<table id="salesDataTable-0" class="display compact resultsData salesTable" style="border-collapse: collapse;">
+			<!-- <table id="salesDataTable" class="display compact resultsData" style="border-collapse: collapse;"> -->
+				<thead style="margin-top: 5px;">
+					<tr>
+						<th style="text-align: center; align-items: center; border: none; width: auto;"></th>
+						<!-- <th style="text-align: center; align-items: center; border: none">Sale Price</th> -->
+						<th style="text-align: center; align-items: left; border: none; width: auto"></th>
+					</tr>
+				</thead>
+				<tbody>
+
+			
+				<tr id="dRow" data-price="36" data-rowId="0-1" data-currency="USD">
+					<td id="imgCol"><img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/tnkAAeSwCrJp4R5-/s-l150.jpg' onclick='getImage("https://i.ebayimg.com/images/g/tnkAAeSwCrJp4R5-/s-l1200.jpg","277900170271")'><div class='ebayNowImg2'><img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'></div></td>
+					<td id="dCol">
+						<div><div style='display: flex; flex-wrap: wrap'><div><span id='soldVia'>Sold Via:&nbsp</div><div><span id='ebayOuter'><span style='font-weight: bold; color: red'>e</span><span style='font-weight: bold; color: blue'>B</span><span style='font-weight: bold; color: orange'>a</span><span style='font-weight: bold; color: green'>y</span></span></span></div></div><span id='titleText'><a href='https://www.ebay.com/itm/277900170271?nordt=true' target='_blank'>JASSON DOMINGUEZ 2025 TOPPS ARCHIVES 2021 BOWMAN CHROME AUTO /50 Q4647</a>&nbsp&nbsp&nbsp&nbsp</span><span id='auctionLabel'>Auction</span><br><span id='priceSpanOuter'><b>Sale Price:</b> <span class='priceSpan' id='0-1-priceFull'> 36.00 USD</span><br><span id='bidText'>Bids: <a href='https://www.ebay.com/bfl/viewbids/277900170271' style='color: blue;' target='_blank'>10 (Click to View)</a></span><br><span id='dateText'><b>Date:</b> Fri 24 Apr 2026 01:57:00 GMT</span><br><span id='shipString'><b>Shipping Price:</b> N/A</span></div>
+						<div style="display: none;" class="0-row" id="dataCol" data-price="36" data-id="0-1" data-currency="USD">
+							<span style="display: none;" class="currencyData" id="0-1-price">36</span>
+							<span style="display: none;" class="currencyData" id="0-1-currency">USD</span>
+							<span style="display: none" class="props-data">Sale Price: 36 - Best Offer Price: 0 - Current Price: 36 - Bids: 10 - Sale Type: auction - CurrentPriceFull: 36.00 USD - SalePriceFull: 36.00 USD</span>
+						</div>
+					</td>
+				</tr>
+
+				
+				<tr id="dRow" data-price="36" data-rowId="0-2" data-currency="USD">
+					<td id="imgCol"><img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/LNEAAeSwxYdp3Wyy/s-l150.jpg' onclick='getImage("https://i.ebayimg.com/images/g/LNEAAeSwxYdp3Wyy/s-l1200.jpg","336532712643")'><div class='ebayNowImg2'><img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'></div></td>
+					<td id="dCol">
+						<div><div style='display: flex; flex-wrap: wrap'><div><span id='soldVia'>Sold Via:&nbsp</div><div><span id='ebayOuter'><span style='font-weight: bold; color: red'>e</span><span style='font-weight: bold; color: blue'>B</span><span style='font-weight: bold; color: orange'>a</span><span style='font-weight: bold; color: green'>y</span></span></span></div></div><span id='titleText'><a href='https://www.ebay.com/itm/336532712643?nordt=true' target='_blank'>2025 Topps Archives 2021 Bowman Chrome #BCP13 Jasson Dominguez 7/50 Auto</a>&nbsp&nbsp&nbsp&nbsp</span><span id='auctionLabel'>Auction</span><br><span id='priceSpanOuter'><b>Sale Price:</b> <span class='priceSpan' id='0-2-priceFull'> 36.00 USD</span><br><span id='bidText'>Bids: <a href='https://www.ebay.com/bfl/viewbids/336532712643' style='color: blue;' target='_blank'>7 (Click to View)</a></span><br><span id='dateText'><b>Date:</b> Wed 22 Apr 2026 03:13:00 GMT</span><br><span id='shipString'><b>Shipping Price:</b> N/A</span></div>
+						<div style="display: none;" class="0-row" id="dataCol" data-price="36" data-id="0-2" data-currency="USD">
+							<span style="display: none;" class="currencyData" id="0-2-price">36</span>
+							<span style="display: none;" class="currencyData" id="0-2-currency">USD</span>
+							<span style="display: none" class="props-data">Sale Price: 36 - Best Offer Price: 0 - Current Price: 36 - Bids: 7 - Sale Type: auction - CurrentPriceFull: 36.00 USD - SalePriceFull: 36.00 USD</span>
+						</div>
+					</td>
+				</tr>
+
+				
+				<tr id="dRow" data-price="99.99" data-rowId="0-3" data-currency="USD">
+					<td id="imgCol"><img style='margin: 0px; max-height: 140px;' src='https://i.ebayimg.com/images/g/xKwAAeSw2G9ofU2-/s-l150.jpg' onclick='getImage("https://i.ebayimg.com/images/g/xKwAAeSw2G9ofU2-/s-l1200.jpg","376419533819")'><div class='ebayNowImg2'><img src='../../images/ebayRN.gif' class='ebayImg2' style='margin: 0px; border-radius: 10px;'></div></td>
+					<td id="dCol">
+						<div><div style='display: flex; flex-wrap: wrap'><div><span id='soldVia'>Sold Via:&nbsp</div><div><span id='ebayOuter'><span style='font-weight: bold; color: red'>e</span><span style='font-weight: bold; color: blue'>B</span><span style='font-weight: bold; color: orange'>a</span><span style='font-weight: bold; color: green'>y</span></span></span></div></div><span id='titleText'><a href='https://www.ebay.com/itm/376419533819?nordt=true' target='_blank'>Jasson Dominguez 2021 topps chrome image variation Auto /99</a>&nbsp&nbsp&nbsp&nbsp</span><span id='auctionLabel'>Auction</span><br><span id='priceSpanOuter'><b>Sale Price:</b> <span class='priceSpan' id='0-3-priceFull'> 99.99 USD</span><br><span id='bidText'>Bids: <a href='https://www.ebay.com/bfl/viewbids/376419533819' style='color: blue;' target='_blank'>2 (Click to View)</a></span><br><span id='dateText'><b>Date:</b> Mon 28 Jul 2025 02:00:01 GMT</span><br><span id='shipString'><b>Shipping Price:</b> N/A</span></div>
+						<div style="display: none;" class="0-row" id="dataCol" data-price="99.99" data-id="0-3" data-currency="USD">
+							<span style="display: none;" class="currencyData" id="0-3-price">99.99</span>
+							<span style="display: none;" class="currencyData" id="0-3-currency">USD</span>
+							<span style="display: none" class="props-data">Sale Price: 99.99 - Best Offer Price: 99.99 - Current Price: 99.99 - Bids: 2 - Sale Type: auction - CurrentPriceFull: 99.99 USD - SalePriceFull: 99.99 USD</span>
+						</div>
+					</td>
+				</tr>
+
+				
+				</tbody>
+			</table>
+		</div>
+		<style>
+			/* Add left and right padding to DataTables top and bottom bars */
+			.dataTables_wrapper .top, .dataTables_wrapper .bottom {
+				padding-left: 10px;
+				padding-right: 10px;
+			}
+		</style>
+		<script>
+			jQuery(document).ready(function() {
+				var table = jQuery('#salesDataTable-0').DataTable({
+					paging: true,
+					searching: true,
+					info: true,
+					ordering: false,
+					dom: '<"top"lfip>t<"bottom"lfip>',
+					pageLength: 25,
+					columnDefs: [
+					{
+						targets: 1,           // the 2nd <td>
+						type: 'string',       // sort as text (even if ordering is off)
+						render: function (data, type) {
+						// Preserve exactly what's in your HTML (including trailing zeros)
+						if (type === 'display' || type === 'filter') return data;
+						return data; // for sort/type operations
+						}
+					}
+					],
+					language: {
+					emptyTable: `Whoops!<br>No results found for search query:<br><b>2021 topps chrome jasson dominguez auto</b><br>Please try a different search term or a less specific search term<br><br>`
+					}
+				});
+
+				if (table.rows().count() == 0) {
+					jQuery('#h4-results-0').text('');
+					jQuery('.top').remove();
+					jQuery('.bottom').remove();
+					jQuery('#currencyDiv-0').hide();
+				} else {
+					jQuery('#h4-results-0').text(table.rows().count() + ' items found');
+				}
+				});
+		</script>
+		<span style="display: none;" id="itemData">[{"itemId":"277900170271","title":"JASSON DOMINGUEZ 2025 TOPPS ARCHIVES 2021 BOWMAN CHROME AUTO \/50 Q4647","currentPrice":36,"currentPriceCurrency":"USD","BestOfferPrice":0,"BestOfferPriceCurrency":"N\/A","salePrice":36,"salePriceCurrency":"USD","bids":10,"saleType":"auction","galleryURL":"https:\/\/i.ebayimg.com\/images\/g\/tnkAAeSwCrJp4R5-\/s-l1200.jpg","endTime":"2026-04-24 01:57:00","shippingServiceCost":null,"source":"ebay","from":"es"},{"itemId":"336532712643","title":"2025 Topps Archives 2021 Bowman Chrome #BCP13 Jasson Dominguez 7\/50 Auto","currentPrice":36,"currentPriceCurrency":"USD","BestOfferPrice":0,"BestOfferPriceCurrency":"N\/A","salePrice":36,"salePriceCurrency":"USD","bids":7,"saleType":"auction","galleryURL":"https:\/\/i.ebayimg.com\/images\/g\/LNEAAeSwxYdp3Wyy\/s-l1200.jpg","endTime":"2026-04-22 03:13:00","shippingServiceCost":null,"source":"ebay","from":"es"},{"itemId":"376419533819","title":"Jasson Dominguez 2021 topps chrome image variation Auto \/99","currentPrice":99.99,"currentPriceCurrency":"USD","BestOfferPrice":99.99,"BestOfferPriceCurrency":"USD","salePrice":99.99,"salePriceCurrency":"USD","bids":2,"saleType":"auction","galleryURL":"https:\/\/i.ebayimg.com\/images\/g\/xKwAAeSw2G9ofU2-\/s-l1200.jpg","endTime":"2025-07-28 02:00:01","shippingServiceCost":null,"source":"ebay","from":"es"}]</span>
+	

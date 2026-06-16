@@ -1,4 +1,14 @@
-streamlit
-matplotlib
-pillow
-pillow-heif
+# Core runtime dependencies (pinned to recent, patched releases).
+streamlit>=1.50,<2
+pandas>=2.2,<3
+requests>=2.32,<3
+beautifulsoup4>=4.13,<5
+lxml>=5.3
+
+# Image handling. Pillow / libheif have a history of image-parsing CVEs and here
+# they process untrusted uploads — keep these current.
+Pillow>=11.3,<12
+pillow-heif>=0.18           # optional: enables HEIC/HEIF; app degrades gracefully if absent
+
+# AI card identification (optional at runtime — only used when ANTHROPIC_API_KEY is set).
+anthropic>=0.69

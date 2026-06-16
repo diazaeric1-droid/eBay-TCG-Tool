@@ -1,0 +1,21 @@
+# Secrets — never commit
+.env
+.streamlit/secrets.toml
+
+# Local data: history DB + saved card images
+data/
+*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
