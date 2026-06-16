@@ -173,7 +173,14 @@ def test_listing_description_includes_population_and_cert():
     assert "PSA VG 3 — cert #108149771" in d
     assert "33 at this grade" in d
     assert "1,478 graded higher" in d
-    assert "psacard.com/cert/108149771" in d
+    assert "cert #108149771" in d
+
+
+def test_listing_description_has_no_urls():
+    # eBay flags external links in listings as a policy violation.
+    d = _cert().listing_description()
+    for bad in ("http://", "https://", "psacard.com", "ebay.com", "www."):
+        assert bad not in d, f"listing copy must not contain a URL ({bad})"
 
 
 def test_listing_title_handles_missing_card_number():

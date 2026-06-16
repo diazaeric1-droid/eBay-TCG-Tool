@@ -187,9 +187,11 @@ class PsaCert:
         if pop:
             lines.append("PSA population: " + ", ".join(pop))
         lines.append("")
+        # No URLs here — eBay flags external links in listings as a policy
+        # violation. Reference the cert by number only.
         lines.append(
-            f"Authenticated and graded by PSA. Verify this cert at "
-            f"psacard.com/cert/{self.cert_number}."
+            f"Authenticated and graded by PSA — cert #{self.cert_number}, "
+            f"verifiable on PSA's website by cert number."
         )
         return "\n".join(lines)
 
