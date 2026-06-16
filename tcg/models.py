@@ -202,14 +202,23 @@ def _grade_number(grade: str) -> str:
 
 
 def _titlecase(s: str) -> str:
-    """Title-case PSA's ALL-CAPS fields without mangling tokens like 'PSA'/'RC'."""
+    """Title-case PSA's ALL-CAPS fields without mangling tokens like 'PSA'/'RC'.
+
+    ``str.title()`` capitalizes the letter after an apostrophe ("SURGE'S" ->
+    "Surge'S"); card text apostrophes are possessives, so we lower that back
+    down ("Surge's").
+    """
+    import re
     s = (s or "").strip()
     if not s:
         return ""
     keep = {"RC", "PSA", "BGS", "SGC", "CGC", "SP", "SSP", "GU", "USA", "II", "III"}
     out = []
     for w in s.split():
-        out.append(w if w.upper() in keep else w.title())
+        if w.upper() in keep:
+            out.append(w)
+        else:
+            out.append(re.sub(r"'([A-Za-z])", lambda m: "'" + m.group(1).lower(), w.title()))
     return " ".join(out)
 
 

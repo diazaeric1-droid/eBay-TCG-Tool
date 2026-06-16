@@ -179,3 +179,12 @@ def test_listing_description_includes_population_and_cert():
 def test_listing_title_handles_missing_card_number():
     t = _cert(card_number="").listing_title()
     assert "#" not in t                        # no stray hash when no card number
+
+
+def test_titlecase_keeps_possessive_lowercase():
+    # PSA ships ALL-CAPS; possessive 's must not become 'S.
+    c = _cert(subject="LT.SURGE'S ELECTABUZZ", brand="POKEMON JAPANESE GYM",
+              card_number="125", variety="HOLO", grade="NM-MT 8")
+    t = c.listing_title()
+    assert "Surge's" in t
+    assert "Surge'S" not in t
