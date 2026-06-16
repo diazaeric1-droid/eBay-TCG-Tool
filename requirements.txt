@@ -12,3 +12,7 @@ pillow-heif>=0.18           # optional: enables HEIC/HEIF; app degrades graceful
 
 # AI card identification (optional at runtime — only used when ANTHROPIC_API_KEY is set).
 anthropic>=0.69
+
+# Loads a local .env for off-Streamlit runs (keys, PSA token). Optional; the app
+# degrades gracefully if absent (Streamlit Cloud uses st.secrets instead).
+python-dotenv>=1.0

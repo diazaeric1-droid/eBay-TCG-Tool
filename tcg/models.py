@@ -90,6 +90,130 @@ class Comp:
 
 
 @dataclass
+class PsaCert:
+    """Verified facts for a PSA-graded slab, from the PSA public cert API."""
+
+    cert_number: str = ""
+    spec_id: Optional[int] = None
+    year: str = ""
+    brand: str = ""               # e.g. "YU-GI-OH! RISE OF DESTINY: SPECIAL EDITION"
+    category: str = ""            # e.g. "TCG Cards"
+    card_number: str = ""         # e.g. "ENSE2"
+    subject: str = ""             # e.g. "DARK MAGICIAN GIRL"
+    variety: str = ""             # e.g. "SPECIAL EDITION"
+    grade: str = ""               # e.g. "VG 3", "GEM MT 10"
+    total_population: Optional[int] = None       # copies graded at this exact grade
+    population_higher: Optional[int] = None       # copies graded higher
+    is_dna: bool = False          # autograph authentication slab
+    valid: bool = True            # False when the cert lookup returned nothing usable
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "PsaCert":
+        return cls(**{k: v for k, v in (d or {}).items() if k in _field_names(cls)})
+
+    @property
+    def grader(self) -> str:
+        return "PSA"
+
+    def search_query(self) -> str:
+        """Concise phrase to retrieve comps for this exact graded card."""
+        parts = [self.year, self.brand, self.subject, self.variety, "PSA",
+                 _grade_number(self.grade)]
+        seen: set[str] = set()
+        out: list[str] = []
+        for p in parts:
+            p = (p or "").strip()
+            if not p:
+                continue
+            key = p.lower()
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(p)
+        return " ".join(out)
+
+    @property
+    def condition(self) -> str:
+        """e.g. 'PSA VG 3' — for the listing's condition field."""
+        g = (self.grade or "").strip()
+        return f"PSA {g}" if g else "PSA Graded"
+
+    def listing_title(self) -> str:
+        """A title-cased, ≤80-char eBay title built from the verified slab.
+
+        eBay caps titles at 80 chars and some brand strings (e.g. PSA's verbose
+        ``YU-GI-OH! RISE OF DESTINY: SPECIAL EDITION``) are long enough to blow
+        the budget on their own. So instead of truncating — which can chop off
+        the grade, the single most important token for a graded card — we keep
+        the highest-signal tokens first and only add the rest if they fit.
+        """
+        num = f"#{self.card_number}" if self.card_number else ""
+        display = [self.year, _titlecase(self.subject), num,
+                   _titlecase(self.brand), _titlecase(self.variety), self.condition]
+        # Most-important first: grade, subject, year are always kept if possible.
+        priority = [self.condition, _titlecase(self.subject), self.year,
+                    _titlecase(self.brand), num, _titlecase(self.variety)]
+        keep: set[str] = set()
+        used = 0
+        for tok in priority:
+            tok = (tok or "").strip()
+            if not tok or tok in keep:
+                continue
+            cost = len(tok) + (1 if used else 0)
+            if used + cost <= 80:
+                keep.add(tok)
+                used += cost
+        title = " ".join(t for t in display if (t or "").strip() and t in keep)
+        return title[:80].rstrip()
+
+    def listing_description(self) -> str:
+        """A copy-ready description body built from the verified slab."""
+        num = f" #{self.card_number}" if self.card_number else ""
+        lines = [
+            f"{self.year} {_titlecase(self.brand)}".strip(),
+            f"{_titlecase(self.subject)}{num}".strip(),
+        ]
+        if self.variety:
+            lines.append(_titlecase(self.variety))
+        lines.append(f"{self.condition} — cert #{self.cert_number}")
+        pop = []
+        if self.total_population is not None:
+            pop.append(f"{self.total_population:,} at this grade")
+        if self.population_higher is not None:
+            pop.append(f"{self.population_higher:,} graded higher")
+        if pop:
+            lines.append("PSA population: " + ", ".join(pop))
+        lines.append("")
+        lines.append(
+            f"Authenticated and graded by PSA. Verify this cert at "
+            f"psacard.com/cert/{self.cert_number}."
+        )
+        return "\n".join(lines)
+
+
+def _grade_number(grade: str) -> str:
+    """'VG 3' -> '3', 'GEM MT 10' -> '10', '9.5' -> '9.5'."""
+    import re
+    m = re.search(r"(\d+(?:\.\d+)?)", grade or "")
+    return m.group(1) if m else ""
+
+
+def _titlecase(s: str) -> str:
+    """Title-case PSA's ALL-CAPS fields without mangling tokens like 'PSA'/'RC'."""
+    s = (s or "").strip()
+    if not s:
+        return ""
+    keep = {"RC", "PSA", "BGS", "SGC", "CGC", "SP", "SSP", "GU", "USA", "II", "III"}
+    out = []
+    for w in s.split():
+        out.append(w if w.upper() in keep else w.title())
+    return " ".join(out)
+
+
+@dataclass
 class Valuation:
     """A defensible estimate derived from a set of sold comps."""
 

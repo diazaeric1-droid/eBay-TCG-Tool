@@ -21,6 +21,7 @@ from tcg.config import load_settings
 from tcg.images import ImageError, encode_jpeg, load_image, thumbnail_bytes
 from tcg.models import CardIdentity, GeneratedListing, PriceReport
 from tcg.pricing import PricingEngine
+from tcg.psa import PsaError, PsaSource, PsaUnavailable
 from tcg.sources import EbaySource, OnePointSource
 
 st.set_page_config(page_title="AI Card Lister & Pricer", page_icon="🃏", layout="wide")
@@ -32,6 +33,7 @@ storage.init_db(SETTINGS.db_path)
 # Streamlit Cloud where app.py may be newer than the cached module bytecode.
 _OLLAMA_ENABLED: bool = getattr(SETTINGS, "ollama_enabled", False)
 _OLLAMA_MODEL: str = getattr(SETTINGS, "ollama_model", "qwen2.5vl:7b")
+_PSA_ENABLED: bool = getattr(SETTINGS, "psa_enabled", False)
 
 
 # --------------------------------------------------------------------------- #
@@ -120,8 +122,33 @@ def reset_card_state() -> None:
     for key in ("pil", "identity", "listing", "query", "report",
                 "report_recency", "saved_id", "upload_key", "auto_done_for",
                 "ai_error", "reidentify_pending", "refresh_comps_pending",
-                "f_title", "f_desc", "f_cond"):
+                "f_title", "f_desc", "f_cond",
+                "psa_cert", "psa_error", "verify_cert_pending"):
         st.session_state.pop(key, None)
+
+
+def render_psa_panel(cert: dict) -> None:
+    """Show a verified PSA slab: identity, grade, and population context."""
+    num = f" #{cert['card_number']}" if cert.get("card_number") else ""
+    variety = f" · {cert['variety']}" if cert.get("variety") else ""
+    st.success(
+        f"🔖 **PSA verified** — cert #{cert.get('cert_number', '')}\n\n"
+        f"**{cert.get('year', '')} {cert.get('brand', '')}**\n\n"
+        f"{cert.get('subject', '')}{num}{variety} — grade **{cert.get('grade', '')}**"
+    )
+    higher = cert.get("population_higher")
+    bits = []
+    if cert.get("total_population") is not None:
+        bits.append(f"{cert['total_population']:,} at this grade")
+    if higher is not None:
+        bits.append(f"{higher:,} graded higher")
+    if bits:
+        tail = ""
+        if (higher or 0) >= 200:
+            tail = " — abundant higher-grade supply caps this grade's value"
+        elif higher is not None and higher <= 10:
+            tail = " — very few graded higher; scarce in top grades"
+        st.caption("PSA population: " + " · ".join(bits) + tail)
 
 
 # --------------------------------------------------------------------------- #
@@ -135,9 +162,10 @@ elif _OLLAMA_ENABLED:
 else:
     ai_state = "⚪️ off (manual entry)"
 ebay_state = "🟢 on" if SETTINGS.ebay_enabled else "⚪️ off"
+psa_state = "🟢 on" if _PSA_ENABLED else "⚪️ off"
 st.caption(
     f"AI identification: **{ai_state}**  ·  Sold comps (130point): **🟢 live**  ·  "
-    f"eBay active comps: **{ebay_state}**"
+    f"eBay active comps: **{ebay_state}**  ·  PSA slab verify: **{psa_state}**"
 )
 
 tab_analyze, tab_history, tab_about = st.tabs(
@@ -241,6 +269,26 @@ with tab_analyze:
         if st.session_state.pop("refresh_comps_pending", False):
             _run_comps = True
 
+        # ---- PSA slab verification (graded cards) — drives a grade-specific query ----
+        if st.session_state.pop("verify_cert_pending", False):
+            st.session_state.pop("psa_error", None)
+            cert_raw = (st.session_state.get("cert_input") or "").strip()
+            with st.spinner("🔖 Verifying PSA cert…"):
+                try:
+                    psa_cert = PsaSource(SETTINGS).verify_cert(cert_raw)
+                    st.session_state.psa_cert = psa_cert.to_dict()
+                    st.session_state.query = psa_cert.search_query()
+                    st.session_state.pop("saved_id", None)
+                    # Seed copy-ready fields from the slab (only if AI hasn't
+                    # already filled them — setdefault never clobbers).
+                    st.session_state.setdefault("f_title", psa_cert.listing_title())
+                    st.session_state.setdefault("f_desc", psa_cert.listing_description())
+                    st.session_state["f_cond"] = psa_cert.condition
+                    _run_comps = True              # chain into grade-specific pricing
+                except (PsaError, PsaUnavailable) as exc:
+                    st.session_state.psa_error = str(exc)
+                    st.session_state.pop("psa_cert", None)
+
         if _run_comps:
             q = (st.session_state.get("query") or "").strip()
             if q:
@@ -291,19 +339,42 @@ with tab_analyze:
                 st.session_state.reidentify_pending = True
                 st.rerun()
 
+        # ---- graded-slab verification (PSA cert lookup) ----
+        if _PSA_ENABLED:
+            with st.expander("🔖 Graded slab? Verify by PSA cert #", expanded=False):
+                st.text_input(
+                    "PSA certification number",
+                    key="cert_input",
+                    placeholder="e.g. 108149771",
+                    help="Reads the slab's exact card, grade, and PSA population "
+                         "straight from PSA, then prices comps for that grade.",
+                )
+                if st.button(
+                    "🔖 Verify slab & price", use_container_width=True,
+                    disabled=not (st.session_state.get("cert_input") or "").strip(),
+                ):
+                    st.session_state.verify_cert_pending = True
+                    st.rerun()
+                if st.session_state.get("psa_error"):
+                    st.warning(st.session_state["psa_error"])
+
     with right:
         st.subheader("2 · Review, price & copy")
         report = st.session_state.get("report")
         listing: GeneratedListing | None = st.session_state.get("listing")
         identity: CardIdentity | None = st.session_state.get("identity")
 
-        if listing is None and report is None:
+        psa_cert = st.session_state.get("psa_cert")
+
+        if listing is None and report is None and not psa_cert:
             st.info(
                 "⚡ **Upload a card** — it's identified, priced, and turned into an "
                 "eBay listing automatically. You can edit anything here before saving, "
                 "and copy each field with one click."
             )
         else:
+            if psa_cert:
+                render_psa_panel(psa_cert)
             # ---- editable listing fields (values driven by session_state, which
             #      the pipeline sets on each new identification) ----
             st.session_state.setdefault("f_title", (listing.ebay_title if listing else "") or "")
@@ -422,9 +493,21 @@ with tab_analyze:
                 if st.button("💾 Save to history", type="primary", use_container_width=True,
                              disabled=report is None):
                     query_str = (st.session_state.get("query") or "").strip()
-                    ident = identity or CardIdentity(
-                        player=(title[:40] or query_str[:40] or "Unknown")
-                    )
+                    ident = identity
+                    if ident is None and psa_cert:
+                        ident = CardIdentity(
+                            year=psa_cert.get("year", ""),
+                            brand=psa_cert.get("brand", ""),
+                            player=psa_cert.get("subject", "") or title[:40],
+                            card_number=psa_cert.get("card_number", ""),
+                            is_graded=True, grader="PSA",
+                            grade=str(psa_cert.get("grade", "")),
+                            condition=condition or "PSA Graded",
+                        )
+                    if ident is None:
+                        ident = CardIdentity(
+                            player=(title[:40] or query_str[:40] or "Unknown")
+                        )
                     lst = GeneratedListing(
                         ebay_title=title, description=description,
                         suggested_condition=condition, search_query=query_str,
@@ -565,6 +648,7 @@ sales — then lets you **save every analysis to a local history**.
 | AI via **Ollama** (free, local) | {_ollama_status} | Install [Ollama](https://ollama.com), run `ollama pull qwen2.5vl:7b`, set `OLLAMA_BASE_URL=http://localhost:11434` |
 | AI via **Claude** (cloud) | {_claude_status} | Set `ANTHROPIC_API_KEY` (env or `.streamlit/secrets.toml`) |
 | eBay active comps | {'🟢 enabled' if SETTINGS.ebay_enabled else '⚪️ off'} | Set `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET` |
+| **PSA slab verify** (graded cards) | {'🟢 enabled' if _PSA_ENABLED else '⚪️ off'} | Set `PSA_API_TOKEN` — then enter a cert # in the Analyze tab to verify the card, grade, and PSA population |
 | Sold comps (130point) | 🟢 always on | — |
 
 When both Claude and Ollama are configured, Claude is used (higher quality).

@@ -19,6 +19,7 @@ history** of everything you've analyzed.
 | 🟩 **Sold comps & price estimate** | Live from **[130point.com](https://130point.com)**, which aggregates completed eBay sales | **No** — always on |
 | 🟩 **AI card identification + listing copy** | **Claude** vision reads the card and drafts the title/description | **Yes — your own** `ANTHROPIC_API_KEY` |
 | 🟩 **Active "similar listings" comps** | eBay's official **Browse API** | Optional (eBay app creds) |
+| 🟩 **Graded-slab verification** | **PSA public API** — enter a cert # to confirm the exact card, grade, and PSA population, then comp that grade | Optional (`PSA_API_TOKEN`) |
 | 🟩 **Submission history** | Every analysis is saved to a local SQLite DB with its image, comps, and valuation | **No** |
 
 Without any keys, the app is still useful: **type the card in → get real sold comps and a
@@ -108,6 +109,7 @@ tcg/
   config.py       Settings from env / st.secrets; feature detection
   images.py       Safe image loading: HEIC, EXIF, decompression-bomb guard
   card_ai.py      Claude vision -> CardIdentity + GeneratedListing (forced tool-use)
+  psa.py          PSA public API: verify a graded slab by cert # -> PsaCert (id, grade, pop)
   sources.py      Live data: OnePointSource (130point), EbaySource (Browse API), DemoSource
   pricing.py      Comps -> Valuation (median / IQR / confidence) + PricingEngine
   storage.py      SQLite submission history (save / list / get / delete / export)
@@ -120,7 +122,7 @@ tests/            pytest suite (parser, pricing, storage, images, AI-with-mock)
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                 # 35 tests: parser (real fixture), pricing math, storage, images, AI
+pytest                 # 48 tests: parser (real fixture), pricing, storage, images, AI, PSA
 pip-audit              # scan dependencies for known CVEs
 ```
 
@@ -150,6 +152,7 @@ The 130point parser is tested against a captured real response
 | `EBAY_CLIENT_ID` / `EBAY_CLIENT_SECRET` | — | Enables eBay active comps |
 | `EBAY_ENV` | `production` | `production` or `sandbox` |
 | `EBAY_MARKETPLACE` | `EBAY_US` | eBay marketplace id |
+| `PSA_API_TOKEN` | — | Enables PSA graded-slab verification (cert lookup → card, grade, population) |
 | `TCG_DATA_DIR` | `data` | Where history DB + images live |
 | `TCG_MAX_UPLOAD_MB` | `25` | Reject uploads larger than this |
 | `TCG_MAX_IMAGE_PIXELS` | `60000000` | Decompression-bomb ceiling |
