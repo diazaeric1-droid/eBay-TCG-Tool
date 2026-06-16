@@ -204,3 +204,16 @@ def test_titlecase_fixes_ordinal_edition():
     t = c.listing_title()
     assert "1st Edition" in t
     assert "1St" not in t
+
+
+def test_variety_not_duplicated_when_brand_contains_it():
+    # brand + variety both carry "Black Star Promo" -> must not double up.
+    c = _cert(year="2003", brand="POKEMON BLACK STAR PROMO",
+              subject="PIKACHU-HOLO", card_number="012",
+              variety="BLACK STAR PROMO", grade="EX-MT 6")
+    t = c.listing_title()
+    assert t.lower().count("black star promo") == 1
+    d = c.listing_description()
+    assert d.lower().count("black star promo") == 1
+    q = c.search_query()
+    assert q.lower().count("black star promo") == 1

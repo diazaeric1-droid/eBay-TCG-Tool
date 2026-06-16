@@ -120,7 +120,7 @@ class PsaCert:
 
     def search_query(self) -> str:
         """Concise phrase to retrieve comps for this exact graded card."""
-        parts = [self.year, self.brand, self.subject, self.variety, "PSA",
+        parts = [self.year, self.brand, self.subject, self._distinct_variety, "PSA",
                  _grade_number(self.grade)]
         seen: set[str] = set()
         out: list[str] = []
@@ -141,6 +141,19 @@ class PsaCert:
         g = (self.grade or "").strip()
         return f"PSA {g}" if g else "PSA Graded"
 
+    @property
+    def _distinct_variety(self) -> str:
+        """The variety, but blank when the brand already contains it.
+
+        PSA often repeats the variety inside the brand (brand
+        ``POKEMON BLACK STAR PROMO`` + variety ``BLACK STAR PROMO``), which
+        would otherwise double the phrase in titles/queries.
+        """
+        v = (self.variety or "").strip()
+        if not v or v.lower() in (self.brand or "").lower():
+            return ""
+        return v
+
     def listing_title(self) -> str:
         """A title-cased, ≤80-char eBay title built from the verified slab.
 
@@ -151,11 +164,12 @@ class PsaCert:
         the highest-signal tokens first and only add the rest if they fit.
         """
         num = f"#{self.card_number}" if self.card_number else ""
+        variety = _titlecase(self._distinct_variety)
         display = [self.year, _titlecase(self.subject), num,
-                   _titlecase(self.brand), _titlecase(self.variety), self.condition]
+                   _titlecase(self.brand), variety, self.condition]
         # Most-important first: grade, subject, year are always kept if possible.
         priority = [self.condition, _titlecase(self.subject), self.year,
-                    _titlecase(self.brand), num, _titlecase(self.variety)]
+                    _titlecase(self.brand), num, variety]
         keep: set[str] = set()
         used = 0
         for tok in priority:
@@ -176,8 +190,8 @@ class PsaCert:
             f"{self.year} {_titlecase(self.brand)}".strip(),
             f"{_titlecase(self.subject)}{num}".strip(),
         ]
-        if self.variety:
-            lines.append(_titlecase(self.variety))
+        if self._distinct_variety:
+            lines.append(_titlecase(self._distinct_variety))
         lines.append(f"{self.condition} — cert #{self.cert_number}")
         pop = []
         if self.total_population is not None:
