@@ -81,7 +81,7 @@ class Settings:
 
     @property
     def ollama_enabled(self) -> bool:
-        return bool(self.ollama_base_url)
+        return bool(getattr(self, "ollama_base_url", None))
 
     @property
     def ebay_enabled(self) -> bool:

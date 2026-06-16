@@ -148,7 +148,7 @@ def identify_card(
     """
     if settings.anthropic_api_key:
         return _identify_claude(image, settings)
-    if settings.ollama_enabled:
+    if getattr(settings, "ollama_enabled", False) or getattr(settings, "ollama_base_url", None):
         return _identify_ollama(image, settings)
     raise AIUnavailable(
         "No AI backend configured. "
@@ -221,7 +221,8 @@ def _identify_ollama(
     image: "Image.Image", settings: Settings
 ) -> Tuple[CardIdentity, GeneratedListing]:
     b64, _ = to_jpeg_b64(image, max_dim=settings.ai_image_max_dim)
-    base = (settings.ollama_base_url or "").rstrip("/")
+    base = (getattr(settings, "ollama_base_url", None) or "").rstrip("/")
+    model = getattr(settings, "ollama_model", "llava")
     # Vision models on CPU can be slow; use a generous timeout.
     timeout = max(120, settings.http_timeout * 6)
 
@@ -229,7 +230,7 @@ def _identify_ollama(
         resp = _req.post(
             f"{base}/api/chat",
             json={
-                "model": settings.ollama_model,
+                "model": model,
                 "messages": [
                     {
                         "role": "user",
@@ -256,8 +257,8 @@ def _identify_ollama(
         except Exception:
             hint = ""
         raise AIError(
-            f"Ollama model '{settings.ollama_model}' not found. "
-            f"Pull it first: ollama pull {settings.ollama_model}"
+            f"Ollama model '{model}' not found. "
+            f"Pull it first: ollama pull {model}"
             + (f" ({hint})" if hint else "")
         )
 

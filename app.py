@@ -28,6 +28,11 @@ st.set_page_config(page_title="AI Card Lister & Pricer", page_icon="🃏", layou
 SETTINGS = load_settings()
 storage.init_db(SETTINGS.db_path)
 
+# Defensive reads for Ollama attrs — guards against a stale tcg/config.pyc on
+# Streamlit Cloud where app.py may be newer than the cached module bytecode.
+_OLLAMA_ENABLED: bool = getattr(SETTINGS, "ollama_enabled", False)
+_OLLAMA_MODEL: str = getattr(SETTINGS, "ollama_model", "llava")
+
 
 # --------------------------------------------------------------------------- #
 # cached data access
@@ -123,8 +128,8 @@ def reset_card_state() -> None:
 st.title("🃏 AI Trading-Card Lister & Pricer")
 if SETTINGS.anthropic_api_key:
     ai_state = f"🟢 Claude ({SETTINGS.anthropic_model})"
-elif SETTINGS.ollama_enabled:
-    ai_state = f"🟢 Ollama ({SETTINGS.ollama_model})"
+elif _OLLAMA_ENABLED:
+    ai_state = f"🟢 Ollama ({_OLLAMA_MODEL})"
 else:
     ai_state = "⚪️ off (manual entry)"
 ebay_state = "🟢 on" if SETTINGS.ebay_enabled else "⚪️ off"
@@ -173,7 +178,7 @@ with tab_analyze:
             if SETTINGS.ai_enabled:
                 _engine_label = (
                     f"Claude ({SETTINGS.anthropic_model})" if SETTINGS.anthropic_api_key
-                    else f"Ollama ({SETTINGS.ollama_model})"
+                    else f"Ollama ({_OLLAMA_MODEL})"
                 )
                 if st.button("🤖 Identify with AI", type="primary", use_container_width=True):
                     with st.spinner(f"Asking {_engine_label} to read the card…"):
@@ -450,8 +455,8 @@ sales — then lets you **save every analysis to a local history**.
         _claude_status = f"🟢 enabled (model: `{SETTINGS.anthropic_model}`)"
     else:
         _claude_status = "⚪️ off"
-    if SETTINGS.ollama_enabled:
-        _ollama_status = f"🟢 enabled (model: `{SETTINGS.ollama_model}`)"
+    if _OLLAMA_ENABLED:
+        _ollama_status = f"🟢 enabled (model: `{_OLLAMA_MODEL}`)"
     else:
         _ollama_status = "⚪️ off"
     st.markdown(
