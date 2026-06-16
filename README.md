@@ -17,12 +17,20 @@ history** of everything you've analyzed.
 | Capability | How it works | Needs a key? |
 |---|---|---|
 | 🟩 **Sold comps & price estimate** | Live from **[130point.com](https://130point.com)**, which aggregates completed eBay sales | **No** — always on |
-| 🟩 **AI card identification + listing copy** | **Claude** vision (Opus 4.8) reads the card and drafts the title/description | Optional (`ANTHROPIC_API_KEY`) |
+| 🟩 **AI card identification + listing copy** | **Claude** vision reads the card and drafts the title/description | **Yes — your own** `ANTHROPIC_API_KEY` |
 | 🟩 **Active "similar listings" comps** | eBay's official **Browse API** | Optional (eBay app creds) |
 | 🟩 **Submission history** | Every analysis is saved to a local SQLite DB with its image, comps, and valuation | **No** |
 
 Without any keys, the app is still useful: **type the card in → get real sold comps and a
 real estimate.** Add an Anthropic key to make it fully automatic from a photo.
+
+> **🔑 Photo identification needs your own API key.** The "upload a photo → auto-fill the
+> listing" step calls **Claude vision**, so it requires **your own** `ANTHROPIC_API_KEY`
+> (a few cents per card). On **Streamlit Cloud**, add it under **⚙️ Manage app → Settings →
+> Secrets**. **No key?** The app still works — you just type the card name and it pulls real
+> sold comps + a price. *(Advanced, key-free option: a locally-running
+> [Ollama](https://ollama.com) vision model also works, but only when you run the app on your
+> own computer — it can't run on a hosted server like Streamlit Cloud.)*
 
 The estimate is **outlier-robust**: the headline number is the **median** of sold comps,
 the range is the **interquartile range (p25–p75)**, and a **confidence** rating reflects
@@ -43,11 +51,22 @@ streamlit run app.py
 
 Then open the URL Streamlit prints (usually <http://localhost:8501>).
 
-### Enable AI identification (optional)
+### Enable AI photo-identification (bring your own key)
+
+AI identification is **off until you provide your own Anthropic API key.** Get one at
+<https://console.anthropic.com>, then:
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...        # or put it in .streamlit/secrets.toml
 ```
+
+On **Streamlit Cloud**, don't use env vars — open **⚙️ Manage app → Settings → Secrets** and add:
+
+```toml
+ANTHROPIC_API_KEY = "sk-ant-..."
+```
+
+Without a key the app runs in **manual mode**: type the card name, get real sold comps + a price.
 
 ### Enable eBay active comps (optional)
 
@@ -66,12 +85,14 @@ All settings can also live in `.streamlit/secrets.toml` (see
 ## Using it
 
 1. **Analyze** tab → upload a card photo (JPG/PNG/WebP/HEIC).
-2. Click **🤖 Identify with AI** (if enabled) — or type the card in the **search query** box.
-3. Pick a **comp window** (e.g. last 90 days) and click **📈 Get / refresh comps**.
-4. Review the estimate, range, confidence, sold-price trend, and the actual comps.
+2. **With an API key:** on upload it **auto-identifies the card, drafts the listing, and pulls
+   live comps** — no clicks. **Without a key:** type the card into the **search query** box and
+   click **📈 Refresh comps**.
+3. Review the estimate, range, confidence, sold-price trend, and the real sold/active comps.
    Edit the title/description as needed.
-5. **💾 Save to history** or **⬇️ Export listing**.
-6. **History** tab → revisit or delete past submissions; export all as CSV.
+4. Use the **one-click copy** buttons to paste each field straight into eBay, then
+   **💾 Save to history** or **⬇️ Export listing**.
+5. **History** tab → revisit or delete past submissions; export all as CSV.
 
 ---
 
@@ -99,7 +120,7 @@ tests/            pytest suite (parser, pricing, storage, images, AI-with-mock)
 
 ```bash
 pip install -r requirements-dev.txt
-pytest                 # 22 tests: parser (real fixture), pricing math, storage, images, AI
+pytest                 # 35 tests: parser (real fixture), pricing math, storage, images, AI
 pip-audit              # scan dependencies for known CVEs
 ```
 
