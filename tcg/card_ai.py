@@ -1,16 +1,23 @@
-"""Claude vision: identify a card from a photo and draft the listing copy.
+"""Card identification via Claude vision (paid) or Ollama (free, local).
 
-The original app only *simulated* this. Here we send the image to Claude
-(Opus 4.8 by default) and force a single structured tool call so the result is a
-validated object — no brittle JSON-from-prose parsing, which also makes this
-robust across SDK versions.
+Engine selection
+---------------
+1. **Claude** — used when ``ANTHROPIC_API_KEY`` is set.  Best quality; requires
+   an Anthropic account.
+2. **Ollama** — used when ``OLLAMA_BASE_URL`` is set (e.g.
+   ``http://localhost:11434``).  Completely free; needs a local Ollama install
+   with a vision-capable model pulled (``ollama pull llava``).
 
-If no ``ANTHROPIC_API_KEY`` is configured, ``identify_card`` raises
-``AIUnavailable`` and the UI falls back to manual entry (comps are still real).
+If neither is configured, ``identify_card`` raises ``AIUnavailable`` and the
+UI falls back to manual entry (130point comps are still real).
 """
 from __future__ import annotations
 
+import json as _json
+import re
 from typing import Tuple
+
+import requests as _req
 
 from .config import Settings
 from .images import to_jpeg_b64
@@ -23,13 +30,16 @@ except Exception:  # pragma: no cover
 
 
 class AIUnavailable(RuntimeError):
-    """No API key configured — AI identification is disabled."""
+    """Neither an API key nor a local Ollama backend is configured."""
 
 
 class AIError(RuntimeError):
     """The AI call failed (network, auth, rate limit, refusal, malformed output)."""
 
 
+# --------------------------------------------------------------------------- #
+# Claude prompt / tool definition (unchanged from original)
+# --------------------------------------------------------------------------- #
 SYSTEM_PROMPT = (
     "You are an expert sports- and trading-card cataloguer who lists cards on eBay. "
     "From the image, identify the card as precisely as you can and produce a sell-ready "
@@ -84,14 +94,75 @@ CARD_TOOL = {
     },
 }
 
+# --------------------------------------------------------------------------- #
+# Ollama prompt (plain JSON — no tool-use protocol)
+# --------------------------------------------------------------------------- #
+OLLAMA_PROMPT = """\
+You are an expert sports and trading card cataloguer who lists on eBay.
+Study the card image carefully and read all text visible on it.
+Never invent details you cannot see.
 
+Respond with ONLY a JSON object — no markdown fences, no explanation, just raw JSON.
+
+Required JSON fields:
+  year         — card year, e.g. "2018"
+  brand        — manufacturer, e.g. "Topps", "Panini", "Bowman"
+  set_name     — set name, e.g. "Chrome", "Prizm", "Heritage"
+  player       — player or character name
+  team         — team name
+  card_number  — card number, e.g. "150"
+  sport        — e.g. "Baseball", "Basketball", "Pokemon"
+  parallel     — parallel/variant name (e.g. "Refractor", "Gold /50") or ""
+  is_rookie    — true if rookie card, else false
+  is_autograph — true if signed, else false
+  is_numbered  — true if serial-numbered, else false
+  serial       — serial stamp, e.g. "12/50", or ""
+  is_graded    — true if in a PSA/BGS/SGC/CGC slab, else false
+  grader       — "PSA", "BGS", "SGC", "CGC", or ""
+  grade        — numeric grade, e.g. "10", "9.5", or ""
+  condition    — "Raw" or graded summary, e.g. "PSA 10"
+  ebay_title   — MUST be ≤80 characters; front-load: year brand set player parallel card# attributes (RC/Auto/etc)
+  description  — full copy-paste-ready eBay listing body
+  search_query — concise phrase to find sold comps (no punctuation, no condition words)
+  confidence   — number 0.0–1.0 reflecting identification certainty
+  notes        — anything uncertain or notable, or ""
+
+Example ebay_title (64 chars): "2018 Topps Chrome Shohei Ohtani Rookie RC #150 Angels Refractor"
+"""
+
+
+# --------------------------------------------------------------------------- #
+# Public entry point
+# --------------------------------------------------------------------------- #
 def identify_card(
     image: "Image.Image", settings: Settings
 ) -> Tuple[CardIdentity, GeneratedListing]:
-    """Return (identity, listing). Raises AIUnavailable / AIError on failure."""
-    if not settings.ai_enabled:
-        raise AIUnavailable("ANTHROPIC_API_KEY is not set.")
+    """Return (identity, listing).
 
+    Engine priority:
+      1. Claude — if ``ANTHROPIC_API_KEY`` is set (highest quality)
+      2. Ollama — if ``OLLAMA_BASE_URL`` is set (free, local, no key)
+
+    Raises ``AIUnavailable`` if neither is configured.
+    Raises ``AIError`` if a configured engine fails.
+    """
+    if settings.anthropic_api_key:
+        return _identify_claude(image, settings)
+    if settings.ollama_enabled:
+        return _identify_ollama(image, settings)
+    raise AIUnavailable(
+        "No AI backend configured. "
+        "Install Ollama (https://ollama.com) and set OLLAMA_BASE_URL=http://localhost:11434, "
+        "or set ANTHROPIC_API_KEY for Claude."
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Claude backend
+# --------------------------------------------------------------------------- #
+def _identify_claude(
+    image: "Image.Image", settings: Settings
+) -> Tuple[CardIdentity, GeneratedListing]:
     try:
         import anthropic
     except ImportError as exc:  # pragma: no cover
@@ -134,7 +205,7 @@ def identify_card(
         raise AIError(f"Claude API error ({exc.status_code}): {exc.message}") from exc
     except anthropic.APIError as exc:
         raise AIError(f"Claude API call failed: {exc}") from exc
-    except Exception as exc:  # noqa: BLE001 - surface anything else cleanly
+    except Exception as exc:  # noqa: BLE001
         raise AIError(f"Unexpected error calling Claude: {exc}") from exc
 
     data = _first_tool_input(resp)
@@ -143,6 +214,92 @@ def identify_card(
     return _split(data)
 
 
+# --------------------------------------------------------------------------- #
+# Ollama backend
+# --------------------------------------------------------------------------- #
+def _identify_ollama(
+    image: "Image.Image", settings: Settings
+) -> Tuple[CardIdentity, GeneratedListing]:
+    b64, _ = to_jpeg_b64(image, max_dim=settings.ai_image_max_dim)
+    base = (settings.ollama_base_url or "").rstrip("/")
+    # Vision models on CPU can be slow; use a generous timeout.
+    timeout = max(120, settings.http_timeout * 6)
+
+    try:
+        resp = _req.post(
+            f"{base}/api/chat",
+            json={
+                "model": settings.ollama_model,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": OLLAMA_PROMPT,
+                        "images": [b64],
+                    }
+                ],
+                "stream": False,
+                "format": "json",
+            },
+            timeout=timeout,
+        )
+    except _req.exceptions.ConnectionError as exc:
+        raise AIError(
+            f"Cannot reach Ollama at {base}. "
+            "Is Ollama running? Start it with: ollama serve"
+        ) from exc
+    except _req.RequestException as exc:
+        raise AIError(f"Ollama request failed: {exc}") from exc
+
+    if resp.status_code == 404:
+        try:
+            hint = resp.json().get("error", "")
+        except Exception:
+            hint = ""
+        raise AIError(
+            f"Ollama model '{settings.ollama_model}' not found. "
+            f"Pull it first: ollama pull {settings.ollama_model}"
+            + (f" ({hint})" if hint else "")
+        )
+
+    try:
+        resp.raise_for_status()
+        content = resp.json()["message"]["content"]
+    except (KeyError, ValueError, _req.HTTPError) as exc:
+        raise AIError(f"Unexpected Ollama response: {exc}") from exc
+
+    data = _extract_json(content)
+    if not data:
+        raise AIError(
+            "Ollama did not return a parseable JSON card report. "
+            "Try a better vision model such as llava:13b or llava-phi3."
+        )
+    return _split(data)
+
+
+def _extract_json(text: str) -> dict | None:
+    """Extract the first JSON object from text (handles prose-wrapped output)."""
+    text = (text or "").strip()
+    try:
+        result = _json.loads(text)
+        if isinstance(result, dict):
+            return result
+    except (ValueError, TypeError):
+        pass
+    # Fallback: grab first {...} block from prose-wrapped output
+    m = re.search(r"\{.*\}", text, re.DOTALL)
+    if m:
+        try:
+            result = _json.loads(m.group(0))
+            if isinstance(result, dict):
+                return result
+        except (ValueError, TypeError):
+            pass
+    return None
+
+
+# --------------------------------------------------------------------------- #
+# Shared helpers
+# --------------------------------------------------------------------------- #
 def _first_tool_input(resp) -> dict | None:
     for block in getattr(resp, "content", []) or []:
         if getattr(block, "type", None) == "tool_use" and getattr(block, "name", "") == "report_card":
@@ -155,8 +312,8 @@ def _split(data: dict) -> Tuple[CardIdentity, GeneratedListing]:
     if len(title) > 80:
         title = title[:80].rstrip()
     identity = CardIdentity.from_dict(data)
-    # The model declares confidence as a number, but tool inputs are not type-coerced
-    # by the SDK — normalize so the UI can always format it as a percentage.
+    # The SDK / Ollama JSON may not type-coerce numbers; normalise so the UI
+    # can always format confidence as a percentage without crashing.
     try:
         identity.confidence = float(data.get("confidence") or 0.0)
     except (TypeError, ValueError):

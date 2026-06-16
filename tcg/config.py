@@ -51,6 +51,10 @@ class Settings:
     anthropic_api_key: Optional[str] = None
     anthropic_model: str = "claude-opus-4-8"
 
+    # --- AI (Ollama local vision — no key required) ---
+    ollama_base_url: Optional[str] = None
+    ollama_model: str = "llava"
+
     # --- eBay Browse API (optional, for ACTIVE comps) ---
     ebay_client_id: Optional[str] = None
     ebay_client_secret: Optional[str] = None
@@ -68,12 +72,16 @@ class Settings:
     )
     max_upload_mb: int = 25
     max_image_pixels: int = 60_000_000     # ~60MP decompression-bomb ceiling
-    ai_image_max_dim: int = 1600           # downscale long edge before sending to Claude
+    ai_image_max_dim: int = 1600           # downscale long edge before sending to Claude/Ollama
     comp_limit: int = 40                   # max comps to pull per source
 
     @property
     def ai_enabled(self) -> bool:
-        return bool(self.anthropic_api_key)
+        return bool(self.anthropic_api_key or self.ollama_base_url)
+
+    @property
+    def ollama_enabled(self) -> bool:
+        return bool(self.ollama_base_url)
 
     @property
     def ebay_enabled(self) -> bool:
@@ -93,6 +101,8 @@ def load_settings() -> Settings:
     return Settings(
         anthropic_api_key=_get("ANTHROPIC_API_KEY"),
         anthropic_model=_get("ANTHROPIC_MODEL", "claude-opus-4-8") or "claude-opus-4-8",
+        ollama_base_url=_get("OLLAMA_BASE_URL"),
+        ollama_model=_get("OLLAMA_MODEL", "llava") or "llava",
         ebay_client_id=_get("EBAY_CLIENT_ID"),
         ebay_client_secret=_get("EBAY_CLIENT_SECRET"),
         ebay_env=(_get("EBAY_ENV", "production") or "production").lower(),

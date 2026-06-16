@@ -121,7 +121,12 @@ def reset_card_state() -> None:
 # header
 # --------------------------------------------------------------------------- #
 st.title("🃏 AI Trading-Card Lister & Pricer")
-ai_state = "🟢 on" if SETTINGS.ai_enabled else "⚪️ off (manual entry)"
+if SETTINGS.anthropic_api_key:
+    ai_state = f"🟢 Claude ({SETTINGS.anthropic_model})"
+elif SETTINGS.ollama_enabled:
+    ai_state = f"🟢 Ollama ({SETTINGS.ollama_model})"
+else:
+    ai_state = "⚪️ off (manual entry)"
 ebay_state = "🟢 on" if SETTINGS.ebay_enabled else "⚪️ off"
 st.caption(
     f"AI identification: **{ai_state}**  ·  Sold comps (130point): **🟢 live**  ·  "
@@ -166,8 +171,12 @@ with tab_analyze:
 
             st.subheader("2 · Identify")
             if SETTINGS.ai_enabled:
+                _engine_label = (
+                    f"Claude ({SETTINGS.anthropic_model})" if SETTINGS.anthropic_api_key
+                    else f"Ollama ({SETTINGS.ollama_model})"
+                )
                 if st.button("🤖 Identify with AI", type="primary", use_container_width=True):
-                    with st.spinner("Asking Claude to read the card…"):
+                    with st.spinner(f"Asking {_engine_label} to read the card…"):
                         try:
                             identity, listing = identify_card(st.session_state.pil, SETTINGS)
                             st.session_state.identity = identity
@@ -181,8 +190,8 @@ with tab_analyze:
                             st.error(f"AI identification failed: {exc}")
             else:
                 st.info(
-                    "AI identification is off (no `ANTHROPIC_API_KEY`). "
-                    "Type the card below to pull real comps — or enable AI in **Settings**."
+                    "AI identification is off. Type the card below to pull real comps, "
+                    "or enable AI in **Settings & About**."
                 )
 
             st.text_input(
@@ -428,23 +437,34 @@ sales — then lets you **save every analysis to a local history**.
 **Data provenance (so you always know what's real):**
 - 🟩 **Sold comps** come live from **130point.com**, which aggregates completed
   eBay sales. This needs **no API key** and is always on.
-- 🟩 **AI identification** uses **Claude** vision (Opus 4.8) when an API key is
-  set; otherwise you type the card in manually and still get real comps.
+- 🟩 **AI identification** — two options, both optional:
+  - **Ollama** (free, runs locally, no account needed): `ollama pull llava`
+  - **Claude** (cloud, best quality): set `ANTHROPIC_API_KEY`
 - 🟩 **Active comps** use eBay's **official Browse API** when credentials are set.
 - 🟥 Anything labelled **SIMULATED / DEMO** is synthetic and only shown as an
   explicit fallback — never mixed into a real estimate.
         """
     )
     st.subheader("Enable the optional integrations")
+    if SETTINGS.anthropic_api_key:
+        _claude_status = f"🟢 enabled (model: `{SETTINGS.anthropic_model}`)"
+    else:
+        _claude_status = "⚪️ off"
+    if SETTINGS.ollama_enabled:
+        _ollama_status = f"🟢 enabled (model: `{SETTINGS.ollama_model}`)"
+    else:
+        _ollama_status = "⚪️ off"
     st.markdown(
         f"""
 | Capability | Status | How to enable |
 |---|---|---|
-| AI card identification | {'🟢 enabled' if SETTINGS.ai_enabled else '⚪️ off'} | Set `ANTHROPIC_API_KEY` (env or `.streamlit/secrets.toml`) |
+| AI via **Ollama** (free, local) | {_ollama_status} | Install [Ollama](https://ollama.com), run `ollama pull llava`, set `OLLAMA_BASE_URL=http://localhost:11434` |
+| AI via **Claude** (cloud) | {_claude_status} | Set `ANTHROPIC_API_KEY` (env or `.streamlit/secrets.toml`) |
 | eBay active comps | {'🟢 enabled' if SETTINGS.ebay_enabled else '⚪️ off'} | Set `EBAY_CLIENT_ID` and `EBAY_CLIENT_SECRET` |
 | Sold comps (130point) | 🟢 always on | — |
 
-Model: `{SETTINGS.anthropic_model}` · Data dir: `{SETTINGS.data_dir}`
+When both Claude and Ollama are configured, Claude is used (higher quality).
+Data dir: `{SETTINGS.data_dir}`
         """
     )
     st.subheader("Honest limitations")
