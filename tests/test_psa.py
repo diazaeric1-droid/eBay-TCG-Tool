@@ -251,6 +251,25 @@ def test_no_rc_token_when_not_a_rookie():
     assert "Rookie" not in _cert(is_rookie=False).listing_description()
 
 
+def test_first_bowman_adds_1st_before_brand():
+    # "1st Bowman" is a key prospect-card value signal (read off the card's 1st
+    # Bowman logo); it must read "1st Bowman Chrome" in title, desc, and query.
+    c = _cert(year="2023", brand="BOWMAN CHROME PROSPECTS",
+              subject="ANGEL GENAO", card_number="BCP-140",
+              variety="PINK MOJO REFRACTOR", grade="MINT 9",
+              print_run="199", is_first_bowman=True)
+    t = c.listing_title()
+    assert "1st Bowman Chrome" in t                  # reads naturally, no dup
+    assert len(t) <= 80
+    assert "PSA MINT 9" in t
+    assert "1st Bowman Chrome" in c.listing_description()
+    assert "1st" in c.search_query()
+
+
+def test_no_1st_token_when_not_first_bowman():
+    assert "1st" not in _cert(is_first_bowman=False).listing_title()
+
+
 def test_variety_not_duplicated_when_brand_contains_it():
     # brand + variety both carry "Black Star Promo" -> must not double up.
     c = _cert(year="2003", brand="POKEMON BLACK STAR PROMO",

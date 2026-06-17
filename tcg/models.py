@@ -108,6 +108,8 @@ class PsaCert:
                                   # the card face (PSA's API does not return it)
     is_rookie: bool = False       # rookie card — read off the card face's "RC" logo
                                   # (PSA's API has no rookie field); adds value
+    is_first_bowman: bool = False  # "1st Bowman" prospect card — read off the card
+                                  # face's "1st Bowman" logo; a key value signal
     is_dna: bool = False          # autograph authentication slab
     valid: bool = True            # False when the cert lookup returned nothing usable
 
@@ -124,8 +126,9 @@ class PsaCert:
 
     def search_query(self) -> str:
         """Concise phrase to retrieve comps for this exact graded card."""
-        parts = [self.year, self.brand, self.subject, self._distinct_variety,
-                 self._print_run_token, ("RC" if self.is_rookie else ""),
+        parts = [self.year, ("1st" if self.is_first_bowman else ""), self.brand,
+                 self.subject, self._distinct_variety, self._print_run_token,
+                 ("RC" if self.is_rookie else ""),
                  "PSA", _grade_number(self.grade)]
         seen: set[str] = set()
         out: list[str] = []
@@ -188,13 +191,15 @@ class PsaCert:
         variety = _titlecase(self._distinct_variety)
         run = self._print_run_token
         rc = "RC" if self.is_rookie else ""
+        # "1st" sits right before the brand so it reads "1st Bowman Chrome".
+        fb = "1st" if self.is_first_bowman else ""
         display = [self.year, _titlecase(self.subject), rc, num,
-                   _titlecase(self.brand), variety, run, self.condition]
+                   fb, _titlecase(self.brand), variety, run, self.condition]
         # Most-important first: grade, subject, year are always kept if possible.
-        # "RC" and the print run are strong value/search signals (and "RC" is
-        # only two chars), so they rank above the long brand string and number.
-        priority = [self.condition, _titlecase(self.subject), self.year, rc, run,
-                    _titlecase(self.brand), num, variety]
+        # "RC", "1st", and the print run are strong value/search signals (and are
+        # short), so they rank above the long brand string and the card number.
+        priority = [self.condition, _titlecase(self.subject), self.year, rc, fb,
+                    run, _titlecase(self.brand), num, variety]
         keep: set[str] = set()
         used = 0
         for tok in priority:
@@ -212,8 +217,9 @@ class PsaCert:
         """A copy-ready description body built from the verified slab."""
         num = f" #{self.card_number}" if self.card_number else ""
         rc = " — Rookie Card (RC)" if self.is_rookie else ""
+        fb = "1st " if self.is_first_bowman else ""
         lines = [
-            f"{self.year} {_titlecase(self.brand)}".strip(),
+            f"{self.year} {fb}{_titlecase(self.brand)}".strip(),
             f"{_titlecase(self.subject)}{num}{rc}".strip(),
         ]
         variety_line = _titlecase(self._distinct_variety)
