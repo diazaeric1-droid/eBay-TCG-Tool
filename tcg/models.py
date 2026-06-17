@@ -106,6 +106,8 @@ class PsaCert:
     population_higher: Optional[int] = None       # copies graded higher
     print_run: str = ""           # serial-number denominator, e.g. "250" — read off
                                   # the card face (PSA's API does not return it)
+    is_rookie: bool = False       # rookie card — read off the card face's "RC" logo
+                                  # (PSA's API has no rookie field); adds value
     is_dna: bool = False          # autograph authentication slab
     valid: bool = True            # False when the cert lookup returned nothing usable
 
@@ -123,7 +125,8 @@ class PsaCert:
     def search_query(self) -> str:
         """Concise phrase to retrieve comps for this exact graded card."""
         parts = [self.year, self.brand, self.subject, self._distinct_variety,
-                 self._print_run_token, "PSA", _grade_number(self.grade)]
+                 self._print_run_token, ("RC" if self.is_rookie else ""),
+                 "PSA", _grade_number(self.grade)]
         seen: set[str] = set()
         out: list[str] = []
         for p in parts:
@@ -184,12 +187,13 @@ class PsaCert:
         num = f"#{self.card_number}" if self.card_number else ""
         variety = _titlecase(self._distinct_variety)
         run = self._print_run_token
-        display = [self.year, _titlecase(self.subject), num,
+        rc = "RC" if self.is_rookie else ""
+        display = [self.year, _titlecase(self.subject), rc, num,
                    _titlecase(self.brand), variety, run, self.condition]
         # Most-important first: grade, subject, year are always kept if possible.
-        # The print run is a strong value/search signal, so it ranks above the
-        # long brand string and the card number.
-        priority = [self.condition, _titlecase(self.subject), self.year, run,
+        # "RC" and the print run are strong value/search signals (and "RC" is
+        # only two chars), so they rank above the long brand string and number.
+        priority = [self.condition, _titlecase(self.subject), self.year, rc, run,
                     _titlecase(self.brand), num, variety]
         keep: set[str] = set()
         used = 0
@@ -207,9 +211,10 @@ class PsaCert:
     def listing_description(self) -> str:
         """A copy-ready description body built from the verified slab."""
         num = f" #{self.card_number}" if self.card_number else ""
+        rc = " — Rookie Card (RC)" if self.is_rookie else ""
         lines = [
             f"{self.year} {_titlecase(self.brand)}".strip(),
-            f"{_titlecase(self.subject)}{num}".strip(),
+            f"{_titlecase(self.subject)}{num}{rc}".strip(),
         ]
         variety_line = _titlecase(self._distinct_variety)
         run = self._print_run_token

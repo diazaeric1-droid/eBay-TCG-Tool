@@ -230,6 +230,27 @@ def test_print_run_tolerates_full_serial_and_punctuation():
     assert "/" not in _cert(card_number="").listing_title()
 
 
+def test_rookie_flag_adds_rc_to_title_description_and_query():
+    # PSA's API has no rookie field; the "RC" is read off the card face. When
+    # set, it must surface in the title (value/search signal), description, query.
+    c = _cert(year="2023", brand="BOWMAN CHROME IT CAME FOR THE LEAGUE",
+              subject="CORBIN CARROLL", card_number="CFL1",
+              variety="ICFTL-MINI DIAMOND REF", grade="MINT 9",
+              is_rookie=True)
+    t = c.listing_title()
+    assert " RC " in f" {t} "                       # RC as a standalone token
+    assert len(t) <= 80
+    assert "PSA MINT 9" in t                         # grade still survives
+    assert "RC" in c.search_query()
+    assert "Rookie Card (RC)" in c.listing_description()
+
+
+def test_no_rc_token_when_not_a_rookie():
+    t = _cert(is_rookie=False).listing_title()
+    assert " RC " not in f" {t} "
+    assert "Rookie" not in _cert(is_rookie=False).listing_description()
+
+
 def test_variety_not_duplicated_when_brand_contains_it():
     # brand + variety both carry "Black Star Promo" -> must not double up.
     c = _cert(year="2003", brand="POKEMON BLACK STAR PROMO",
