@@ -104,6 +104,8 @@ class PsaCert:
     grade: str = ""               # e.g. "VG 3", "GEM MT 10"
     total_population: Optional[int] = None       # copies graded at this exact grade
     population_higher: Optional[int] = None       # copies graded higher
+    print_run: str = ""           # serial-number denominator, e.g. "250" — read off
+                                  # the card face (PSA's API does not return it)
     is_dna: bool = False          # autograph authentication slab
     valid: bool = True            # False when the cert lookup returned nothing usable
 
@@ -120,8 +122,8 @@ class PsaCert:
 
     def search_query(self) -> str:
         """Concise phrase to retrieve comps for this exact graded card."""
-        parts = [self.year, self.brand, self.subject, self._distinct_variety, "PSA",
-                 _grade_number(self.grade)]
+        parts = [self.year, self.brand, self.subject, self._distinct_variety,
+                 self._print_run_token, "PSA", _grade_number(self.grade)]
         seen: set[str] = set()
         out: list[str] = []
         for p in parts:
@@ -140,6 +142,22 @@ class PsaCert:
         """e.g. 'PSA VG 3' — for the listing's condition field."""
         g = (self.grade or "").strip()
         return f"PSA {g}" if g else "PSA Graded"
+
+    @property
+    def _print_run_token(self) -> str:
+        """The print run as a search-friendly ``/250`` token (blank if unset).
+
+        PSA's API never returns the serial number, so this is populated from the
+        card face. Buyers search the denominator (``/250``), so we surface it in
+        the title and description when known.
+        """
+        import re
+        raw = (self.print_run or "").strip()
+        # A full serial ("074/250") carries the denominator after the slash;
+        # a bare value ("250") is the denominator itself.
+        denom = raw.rsplit("/", 1)[-1] if "/" in raw else raw
+        pr = re.sub(r"\D", "", denom)
+        return f"/{pr}" if pr else ""
 
     @property
     def _distinct_variety(self) -> str:
@@ -165,10 +183,13 @@ class PsaCert:
         """
         num = f"#{self.card_number}" if self.card_number else ""
         variety = _titlecase(self._distinct_variety)
+        run = self._print_run_token
         display = [self.year, _titlecase(self.subject), num,
-                   _titlecase(self.brand), variety, self.condition]
+                   _titlecase(self.brand), variety, run, self.condition]
         # Most-important first: grade, subject, year are always kept if possible.
-        priority = [self.condition, _titlecase(self.subject), self.year,
+        # The print run is a strong value/search signal, so it ranks above the
+        # long brand string and the card number.
+        priority = [self.condition, _titlecase(self.subject), self.year, run,
                     _titlecase(self.brand), num, variety]
         keep: set[str] = set()
         used = 0
@@ -190,8 +211,14 @@ class PsaCert:
             f"{self.year} {_titlecase(self.brand)}".strip(),
             f"{_titlecase(self.subject)}{num}".strip(),
         ]
-        if self._distinct_variety:
-            lines.append(_titlecase(self._distinct_variety))
+        variety_line = _titlecase(self._distinct_variety)
+        run = self._print_run_token
+        if variety_line and run:
+            lines.append(f"{variety_line} {run}")
+        elif variety_line:
+            lines.append(variety_line)
+        elif run:
+            lines.append(f"Serial-numbered {run}")
         lines.append(f"{self.condition} — cert #{self.cert_number}")
         pop = []
         if self.total_population is not None:

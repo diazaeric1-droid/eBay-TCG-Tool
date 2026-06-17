@@ -206,6 +206,30 @@ def test_titlecase_fixes_ordinal_edition():
     assert "1St" not in t
 
 
+def test_print_run_in_title_description_and_query():
+    # The /250 print run is read off the card face (PSA's API never returns it)
+    # and must surface in the title, description, and comp query.
+    c = _cert(year="2025", brand="BOWMAN CHROME MEGA BOX METEORIC RISE",
+              subject="GEORGE LOMBARD JR.", card_number="18",
+              variety="METEORIC RISE-PURPLE REF", grade="MINT 9",
+              print_run="250")
+    t = c.listing_title()
+    assert "/250" in t
+    assert len(t) <= 80
+    assert "PSA MINT 9" in t                       # grade still survives
+    assert "/250" in c.listing_description()
+    assert "/250" in c.search_query()
+
+
+def test_print_run_tolerates_full_serial_and_punctuation():
+    # "074/250" or "/250" both normalize to the /250 denominator token.
+    assert _cert(print_run="074/250")._print_run_token == "/250"
+    assert _cert(print_run="/250")._print_run_token == "/250"
+    assert _cert(print_run="")._print_run_token == ""
+    # No stray slash in the title when there's no print run.
+    assert "/" not in _cert(card_number="").listing_title()
+
+
 def test_variety_not_duplicated_when_brand_contains_it():
     # brand + variety both carry "Black Star Promo" -> must not double up.
     c = _cert(year="2003", brand="POKEMON BLACK STAR PROMO",
