@@ -14,6 +14,16 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
+# Load a local ``.env`` (if present) so env-var settings work off-Streamlit.
+# No-op when python-dotenv isn't installed or no .env exists — on Streamlit
+# Cloud, secrets come from st.secrets instead.
+try:  # pragma: no cover - trivial best-effort glue
+    from dotenv import load_dotenv as _load_dotenv
+
+    _load_dotenv()
+except Exception:
+    pass
+
 
 def _secret(key: str) -> Optional[str]:
     """Best-effort read from Streamlit secrets; never raises off-Streamlit."""
@@ -61,6 +71,9 @@ class Settings:
     ebay_env: str = "production"          # production | sandbox
     ebay_marketplace: str = "EBAY_US"
 
+    # --- PSA public API (optional: verify graded slabs by cert #) ---
+    psa_api_token: Optional[str] = None
+
     # --- storage ---
     data_dir: Path = Path("data")
 
@@ -88,6 +101,10 @@ class Settings:
         return bool(self.ebay_client_id and self.ebay_client_secret)
 
     @property
+    def psa_enabled(self) -> bool:
+        return bool(getattr(self, "psa_api_token", None))
+
+    @property
     def db_path(self) -> Path:
         return self.data_dir / "history.db"
 
@@ -107,6 +124,7 @@ def load_settings() -> Settings:
         ebay_client_secret=_get("EBAY_CLIENT_SECRET"),
         ebay_env=(_get("EBAY_ENV", "production") or "production").lower(),
         ebay_marketplace=_get("EBAY_MARKETPLACE", "EBAY_US") or "EBAY_US",
+        psa_api_token=_get("PSA_API_TOKEN"),
         data_dir=data_dir,
         http_timeout=_get_int("TCG_HTTP_TIMEOUT", 20),
         max_upload_mb=_get_int("TCG_MAX_UPLOAD_MB", 25),
